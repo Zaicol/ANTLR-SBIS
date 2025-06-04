@@ -1,7 +1,6 @@
 from ASICParserVisitor import ASICParserVisitor
 from ASICParser import ASICParser
 from BitInstruction import BitInstruction, BitConfig
-from icecream import ic
 
 
 def stdop_match(ctx_text):
