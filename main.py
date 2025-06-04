@@ -4,6 +4,7 @@ from ASICLexer import ASICLexer
 from ASICParser import ASICParser
 from CodeGenerator import CodeGenerator
 from LabelCollector import LabelCollector
+from tree import generate_graph_tree
 
 
 def main(argv):
@@ -18,6 +19,7 @@ def main(argv):
     # Парсим программу и создаем дерево разбора
     tree = parser.prog()
     print("Дерево разбора создано:", tree.toStringTree(recog=parser))
+    generate_graph_tree(tree, parser)
 
     # Проверка на наличие ошибок
     if parser.getNumberOfSyntaxErrors() > 0:
@@ -33,7 +35,7 @@ def main(argv):
     labels = label_collector.get_labels()
     configs = label_collector.get_configs()
     print("Найденные метки и их адреса:", labels)
-    print("Найденные конфигурации и их адреса:", configs)
+    print("Найденные конфигурации и их индексы:", configs)
 
     print("\n==================\n")
 
