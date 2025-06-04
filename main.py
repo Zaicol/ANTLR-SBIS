@@ -42,11 +42,9 @@ def main(argv):
     # Второй проход: генерация машинного кода
     code_generator = CodeGenerator(labels, configs)
     code_generator.visit(tree)
-    machine_code = code_generator.get_machine_code()
     print("Сгенерированный машинный код:")
 
-    for instruction in machine_code:
-        print(instruction.to_hex())
+    print(code_generator.get_full_code_str(prefix=False))
 
 
 if __name__ == '__main__':

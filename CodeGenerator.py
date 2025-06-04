@@ -1,6 +1,7 @@
 from ASICParserVisitor import ASICParserVisitor
 from ASICParser import ASICParser
-from BitInstruction import BitInstruction
+from BitInstruction import BitInstruction, BitConfig
+from icecream import ic
 
 
 def stdop_match(ctx_text):
@@ -24,6 +25,7 @@ class CodeGenerator(ASICParserVisitor):
         self.labels = labels          # Метки и их адреса
         self.configs = configs        # Конфигурации и их индексы
         self.machine_code: list[BitInstruction] = []        # Байтовый код программы
+        self.config_code: list[BitConfig] = []
 
     def visitSreg(self, ctx: ASICParser.SregContext):
         regs = {
@@ -78,15 +80,15 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitConstant(self, ctx: ASICParser.ConstantContext):
         self.machine_code[-1][7:0] = format(int(ctx.getText()), '08b')
+
         return self.visitChildren(ctx)
 
     def visitArith(self, ctx: ASICParser.ArithContext):
         op = ctx.getChild(1).getText()
+        self.machine_code[-1][25] = '1'
         if op == '--':
-            self.machine_code[-1][25] = '1'
             self.machine_code[-1][30] = '0'
         elif op == '++':
-            self.machine_code[-1][25] = '1'
             self.machine_code[-1][30] = '1'
         return self.visitChildren(ctx)
 
@@ -103,8 +105,8 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitConfig_name(self, ctx: ASICParser.Config_nameContext):
-        print(format(self.configs[ctx.getText()], '05b'))
-        self.machine_code[-1][9:4] = format(self.configs[ctx.getText()], '06b')
+        if not isinstance(ctx.parentCtx, ASICParser.Config_defContext):
+            self.machine_code[-1][9:4] = format(self.configs[ctx.getText()], '06b')
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
@@ -112,7 +114,54 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitDefinition(self, ctx: ASICParser.DefinitionContext):
+        self.config_code.append(BitConfig())
+        return self.visitChildren(ctx)
+
+    def visitConst_expr(self, ctx: ASICParser.Const_exprContext):
+        return self.visitChildren(ctx)
+
+    def visitConf_c(self, ctx: ASICParser.Conf_cContext):
+        const_expr_ctx = ctx.const_expr()
+        if const_expr_ctx:
+            const_index = const_expr_ctx.expression()[0].getText()
+            shift_value = None
+            if const_expr_ctx.LSHIFT():
+                shift_value = int(const_expr_ctx.expression()[1].getText())
+            self.config_code[-1].set_constant(int(const_index), shift_value)
+
+        return
+
+    def visitConf_d(self, ctx: ASICParser.Conf_dContext):
+        vreg_name = ctx.vreg().getText()
+        shift_value = None
+        significant_count = 32
+        if ctx.LSHIFT():
+            shift_value = int(ctx.expression()[0].getText())
+        elif len(ctx.expression()) > 0:
+            significant_count = int(ctx.expression()[0].getText())
+
+        self.config_code[-1].set_input(vreg_name, shift_value, significant_count)
         return
 
     def get_machine_code(self):
         return self.machine_code
+
+    def get_config_code(self):
+        return self.config_code
+
+    def get_full_code(self, prefix=False) -> list[str]:
+        result = [f"#conf {len(self.config_code)}"]
+        prefix_str = "0x" if prefix else ""
+        for config in self.config_code:
+            conf_hex = config.to_hex_list(False)
+            result += [prefix_str + conf_hex[i] for i in range(4)]
+
+        result += [f"#prog {len(self.machine_code)}"]
+        for instruction in self.machine_code:
+            inst_hex = instruction.to_hex(False)
+            result += [prefix_str + inst_hex]
+        return result
+
+    def get_full_code_str(self, prefix=False) -> str:
+        code = self.get_full_code(prefix)
+        return "\n".join(code)

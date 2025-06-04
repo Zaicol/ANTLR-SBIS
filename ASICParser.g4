@@ -113,10 +113,11 @@ logicalor_expression
     ;
 
 expression
-    :   logicalor_expression
+    :   constant
+    |   logicalor_expression
     ;
 
-configuration: conf_atom (PLUS conf_atom) ;
+configuration: conf_atom (PLUS conf_atom)* ;
 
 conf_atom: conf_d | conf_c;
 

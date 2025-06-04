@@ -18,7 +18,6 @@ class LabelCollector(ASICParserVisitor):
     def visitStatement(self, ctx:ASICParser.StatementContext):
         # Увеличение адреса для каждой инструкции
         self.line += 1
-        print("Line:", self.line)
         return self.visitChildren(ctx)
 
     def visitConfig_def(self, ctx:ASICParser.Config_defContext):
