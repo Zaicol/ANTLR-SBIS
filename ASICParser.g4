@@ -13,7 +13,7 @@ definition: define_def | config_def | const_def;
 
 define_def: DEFINE define_name expression ;
 
-config_def: CONFIG config_name configuration ;
+config_def: CONFIG config_name (configuration | rev_configuration) ;
 
 const_def: CONST const_name const_expr ;
 
@@ -117,11 +117,13 @@ expression
     |   logicalor_expression
     ;
 
+rev_configuration: REV LPAREN configuration RPAREN ;
+
 configuration: conf_atom (PLUS conf_atom)* ;
 
-conf_atom: conf_d | conf_c;
+conf_atom: conf_d | conf_c ;
 
-conf_d: vreg (LBRACE expression RBRACE)? (LSHIFT expression)?;
+conf_d: (vreg | vreg_r) (LBRACE expression RBRACE)? (LSHIFT expression)?;
 conf_c: const_name | const_expr ;
 
 const_expr: SC LBRACKET expression RBRACKET (LSHIFT expression)? ;
@@ -143,6 +145,8 @@ sreg: R0 | R1 | R2 | R3 ;
 arg: ARG0 | ARG1 | ARG2 | ARG3 ;
 
 vreg: V1 | V1H | V2 | V3 | V4;
+
+vreg_r: R0 | REV LPAREN R0 RPAREN;
 
 output: vreg | CMP | OUT ;
 

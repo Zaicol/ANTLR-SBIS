@@ -179,6 +179,11 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ASICParser#rev_configuration.
+    def visitRev_configuration(self, ctx:ASICParser.Rev_configurationContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ASICParser#configuration.
     def visitConfiguration(self, ctx:ASICParser.ConfigurationContext):
         return self.visitChildren(ctx)
@@ -246,6 +251,11 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#vreg.
     def visitVreg(self, ctx:ASICParser.VregContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#vreg_r.
+    def visitVreg_r(self, ctx:ASICParser.Vreg_rContext):
         return self.visitChildren(ctx)
 
 

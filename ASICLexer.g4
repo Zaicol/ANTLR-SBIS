@@ -68,6 +68,7 @@ SD: D;
 SC: C;
 
 ID : I D ;
+REV : R E V ;
 INV : I N V ;
 AND : A N D ;
 OR : O R ;

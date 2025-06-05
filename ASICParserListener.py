@@ -314,6 +314,15 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ASICParser#rev_configuration.
+    def enterRev_configuration(self, ctx:ASICParser.Rev_configurationContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#rev_configuration.
+    def exitRev_configuration(self, ctx:ASICParser.Rev_configurationContext):
+        pass
+
+
     # Enter a parse tree produced by ASICParser#configuration.
     def enterConfiguration(self, ctx:ASICParser.ConfigurationContext):
         pass
@@ -437,6 +446,15 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#vreg.
     def exitVreg(self, ctx:ASICParser.VregContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#vreg_r.
+    def enterVreg_r(self, ctx:ASICParser.Vreg_rContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#vreg_r.
+    def exitVreg_r(self, ctx:ASICParser.Vreg_rContext):
         pass
 
 

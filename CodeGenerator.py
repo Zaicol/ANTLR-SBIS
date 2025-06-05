@@ -131,16 +131,35 @@ class CodeGenerator(ASICParserVisitor):
         return
 
     def visitConf_d(self, ctx: ASICParser.Conf_dContext):
-        vreg_name = ctx.vreg().getText()
         shift_value = None
         significant_count = 32
-        if ctx.LSHIFT():
+
+        # Получаем название входа: v1, v1h, v2, v3, v4, r0, rev(r0)
+        if ctx.vreg():
+            vreg_name = ctx.vreg().getText()
+        elif ctx.vreg_r():
+            vreg_name = ctx.vreg_r().R0().getText()
+            significant_count = 64
+        else:
+            raise Exception("Unknown vreg")
+
+        if ctx.vreg_r() and ctx.vreg_r().REV():
+            self.config_code[-1][120] = '1'
+
+        if len(ctx.expression()) == 2:
+            significant_count = int(ctx.expression()[0].getText())
+            shift_value = int(ctx.expression()[1].getText())
+        elif ctx.LSHIFT():
             shift_value = int(ctx.expression()[0].getText())
         elif len(ctx.expression()) > 0:
             significant_count = int(ctx.expression()[0].getText())
 
         self.config_code[-1].set_input(vreg_name, shift_value, significant_count)
         return
+
+    def visitRev_configuration(self, ctx: ASICParser.Rev_configurationContext):
+        self.config_code[-1][121] = '1'
+        return self.visitChildren(ctx)
 
     def get_machine_code(self):
         return self.machine_code
