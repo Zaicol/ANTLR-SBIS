@@ -2,10 +2,7 @@
 from antlr4 import *
 from io import StringIO
 import sys
-if sys.version_info[1] > 5:
-    from typing import TextIO
-else:
-    from typing.io import TextIO
+from typing import TextIO
 
 
 def serializedATN():
@@ -239,6 +236,7 @@ def serializedATN():
         1,0,0,0,23,0,234,239,243,248,255,260,264,271,276,280,287,292,296,
         402,405,415,425,487,612,614,625,629,1,6,0,0
     ]
+
 
 class ASICLexer(Lexer):
 

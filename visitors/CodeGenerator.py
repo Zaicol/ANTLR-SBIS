@@ -1,6 +1,6 @@
-from ASICLexer import ASICLexer
-from ASICParser import ASICParser
-from ASICParserVisitor import ASICParserVisitor
+from generated.ASICLexer import ASICLexer
+from generated.ASICParser import ASICParser
+from generated.ASICParserVisitor import ASICParserVisitor
 from models.BitInstruction import BitInstruction, BitConfig
 
 

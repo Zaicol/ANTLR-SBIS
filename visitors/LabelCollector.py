@@ -1,5 +1,5 @@
-from ASICParserVisitor import ASICParserVisitor
-from ASICParser import ASICParser
+from generated.ASICParserVisitor import ASICParserVisitor
+from generated.ASICParser import ASICParser
 
 
 class LabelCollector(ASICParserVisitor):
