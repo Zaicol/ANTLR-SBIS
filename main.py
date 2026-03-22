@@ -1,10 +1,10 @@
 import sys
 from antlr4 import *
-from ASICLexer import ASICLexer
-from ASICParser import ASICParser
-from CodeGenerator import CodeGenerator
-from LabelCollector import LabelCollector
-from tree import generate_graph_tree
+from generated.ASICLexer import ASICLexer
+from generated.ASICParser import ASICParser
+from visitors.CodeGenerator import CodeGenerator
+from visitors.LabelCollector import LabelCollector
+from utils.tree import generate_graph_tree
 
 
 def main(argv):

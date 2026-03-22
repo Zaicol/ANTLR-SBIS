@@ -1,7 +1,7 @@
 from ASICLexer import ASICLexer
 from ASICParser import ASICParser
 from ASICParserVisitor import ASICParserVisitor
-from BitInstruction import BitInstruction, BitConfig
+from models.BitInstruction import BitInstruction, BitConfig
 
 
 def stdop_match(ctx_text):
