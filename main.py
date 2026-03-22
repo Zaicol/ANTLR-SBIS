@@ -9,7 +9,7 @@ from utils.tree import generate_graph_tree
 
 def main(argv):
     # Создание потока входных данных
-    input_stream = FileStream("test1.txt", encoding="utf-8")
+    input_stream = FileStream("test_files/test1.txt", encoding="utf-8")
 
     # Создаем лексер и парсер
     lexer = ASICLexer(input_stream)

@@ -1,0 +1,7 @@
+%config conf_1 c[0] << 96;
+l0: (cmp, v1, v2^, v3, v4&) = dinv(conf_1);
+wait(0b1101);
+out = v4;
+wait(FFh);
+jnz(r1, l1);
+eop;
