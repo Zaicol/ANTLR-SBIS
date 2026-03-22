@@ -19,6 +19,16 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ASICParser#forloop.
+    def visitForloop(self, ctx:ASICParser.ForloopContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#endfor.
+    def visitEndfor(self, ctx:ASICParser.EndforContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ASICParser#definition.
     def visitDefinition(self, ctx:ASICParser.DefinitionContext):
         return self.visitChildren(ctx)
@@ -81,6 +91,16 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#SpCopOnly.
     def visitSpCopOnly(self, ctx:ASICParser.SpCopOnlyContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#OutOp.
+    def visitOutOp(self, ctx:ASICParser.OutOpContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#resultout.
+    def visitResultout(self, ctx:ASICParser.ResultoutContext):
         return self.visitChildren(ctx)
 
 
@@ -256,6 +276,11 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#vreg_r.
     def visitVreg_r(self, ctx:ASICParser.Vreg_rContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#vreg_special.
+    def visitVreg_special(self, ctx:ASICParser.Vreg_specialContext):
         return self.visitChildren(ctx)
 
 

@@ -7,7 +7,10 @@ prog
    ;
 
 line
-   : (definition|statement) comment? ;
+   : (definition|statement|forloop|endfor) comment? ;
+
+forloop: FOR LPAREN sreg COMMA constant RPAREN ;
+endfor: ENDFOR ;
 
 definition: define_def | config_def | const_def;
 
@@ -17,7 +20,7 @@ config_def: CONFIG config_name (configuration | rev_configuration) ;
 
 const_def: CONST const_name const_expr ;
 
-constant: HEXADECIMAL | DECIMAL ;
+constant: HEXADECIMAL | DECIMAL | BINARY | OCTAL;
 
 statement
    : lbl | (lbl? (instruction | (instruction COMMA instruction) | (instruction COMMA instruction COMMA instruction)))
@@ -37,7 +40,10 @@ operator
     : resultexpr ASSIGN (aluop | stdop) argument   # AluSpOp
     | resultexpr ASSIGN spcop                      # SpCopOp
     | spcop                                        # SpCopOnly
+    | resultout                                    # OutOp
     ;
+
+resultout : OUT ASSIGN V4 ;
 
 lbl
    : label COLON
@@ -148,7 +154,9 @@ vreg: V1 | V1H | V2 | V3 | V4;
 
 vreg_r: R0 | REV LPAREN R0 RPAREN;
 
-output: vreg | CMP | OUT ;
+vreg_special: V2N | V4M;
+
+output: vreg | vreg_special | CMP | OUT ;
 
 stdop: A1 | A4 | A5 | A128D | SD | DINV ;
 

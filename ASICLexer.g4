@@ -1,7 +1,9 @@
 lexer grammar ASICLexer;
 
-HEXADECIMAL:        '0' X HexDigit+ ;
-DECIMAL:            Digit+ ;
+HEXADECIMAL:        '0' X HexDigit+ | HexDigit+ H;
+DECIMAL:            Digit+ | '0' D Digit+ | Digit+ D;
+BINARY:             '0' B BinaryDigit+ | BinaryDigit+ B;
+OCTAL:              '0' O OctalDigit+ | OctalDigit+ O;
 
 fragment
 Letter: ('a'..'z' | 'A'..'Z'| '_');
@@ -11,6 +13,12 @@ Digit: '0'..'9';
 
 fragment
 HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+
+fragment
+BinaryDigit : ('0'..'1');
+
+fragment
+OctalDigit : ('0'..'7');
 
 fragment A: [aA];
 fragment B: [bB];
@@ -49,15 +57,16 @@ ARG1: '$1' ;
 ARG2: '$2' ;
 ARG3: '$3' ;
 
-V1: V '1' ;
-V1H: V '1' H ;
-V2: V '2' ;
-V3: V '3' ;
-V4: V '4' ;
+    V1: V '1' ;
+    V1H: V '1' H ;
+    V2: V '2' ;
+    V3: V '3' ;
+    V4: V '4' ;
 
-DEFINE : D E F I N E;
-CONFIG : C O N F I G;
-CONST : C O N S T;
+PROCCHAR : MOD | HASH;
+DEFINE : (PROCCHAR)? D E F I N E;
+CONFIG : (PROCCHAR)? C O N F I G;
+CONST : (PROCCHAR)? C O N S T;
 
 A1 : A '1';
 A4 : A '4';
@@ -141,6 +150,14 @@ COLON: ':';
 SEMI: ';';
 
 DOT: '.';
+
+HASH: '#';
+
+V2N: V2 CARET;
+V4M: V4 AMP;
+
+FOR: F O R ;
+ENDFOR: E N D F O R ;
 
 CMP: C M P ;
 OUT: O U T ;

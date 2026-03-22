@@ -86,6 +86,18 @@ class BitInstruction:
         """
         return ("0x" if prefix else "") + ''.join(self.to_hex_list())
 
+    def to_binary_list(self) -> list[str]:
+
+        # Split into groups of 4 bits from left to right (MSB to LSB)
+        bin_list = []
+        for i in range(0, self.len, 32):
+            tmp_list = []
+            for j in range(8):
+                tmp_list.append(''.join(self.bits[i+j*4:i + j * 4 + 4]))
+            bin_list.append('_'.join(tmp_list))
+
+        return bin_list[::-1]
+
     def get_significant_bits(self) -> list[int]:
         indices = []
         for i, bit in enumerate(self.bits):
@@ -163,7 +175,7 @@ class BitConfig(BitInstruction):
         fit_space = []
         match reg_name:
             case "v1":
-                fit_space = [1, 2, 4]
+                fit_space = [2, 1, 4]
             case "v1h":
                 fit_space = [3]
             case "v2":

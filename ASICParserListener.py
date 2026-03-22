@@ -26,6 +26,24 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ASICParser#forloop.
+    def enterForloop(self, ctx:ASICParser.ForloopContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#forloop.
+    def exitForloop(self, ctx:ASICParser.ForloopContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#endfor.
+    def enterEndfor(self, ctx:ASICParser.EndforContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#endfor.
+    def exitEndfor(self, ctx:ASICParser.EndforContext):
+        pass
+
+
     # Enter a parse tree produced by ASICParser#definition.
     def enterDefinition(self, ctx:ASICParser.DefinitionContext):
         pass
@@ -140,6 +158,24 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#SpCopOnly.
     def exitSpCopOnly(self, ctx:ASICParser.SpCopOnlyContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#OutOp.
+    def enterOutOp(self, ctx:ASICParser.OutOpContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#OutOp.
+    def exitOutOp(self, ctx:ASICParser.OutOpContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#resultout.
+    def enterResultout(self, ctx:ASICParser.ResultoutContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#resultout.
+    def exitResultout(self, ctx:ASICParser.ResultoutContext):
         pass
 
 
@@ -455,6 +491,15 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#vreg_r.
     def exitVreg_r(self, ctx:ASICParser.Vreg_rContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#vreg_special.
+    def enterVreg_special(self, ctx:ASICParser.Vreg_specialContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#vreg_special.
+    def exitVreg_special(self, ctx:ASICParser.Vreg_specialContext):
         pass
 
 
