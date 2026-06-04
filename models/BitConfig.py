@@ -2,7 +2,7 @@ from models.BitInstruction import BitInstruction
 
 
 class BitConfig(BitInstruction):
-    def __init__(self, bits: str = None):
+    def __init__(self, bits: str = None, source_line: int = 0):
         super().__init__()
         self.len = 128
         self.bits = ['0'] * self.len
@@ -12,9 +12,10 @@ class BitConfig(BitInstruction):
             self.bits = list(bits)
         self.constant_index = 0
         self.free_spaces = [1, 2, 3, 4]
+        self.source_line = source_line
 
-    def to_hex(self, prefix=True):
-        sup = super().to_hex_list()
+    def to_hex_str(self, prefix=True, split_bytes=False):
+        sup = super().to_hex()
 
         result = ""
         for i in range(4):

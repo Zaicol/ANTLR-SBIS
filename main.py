@@ -7,9 +7,13 @@ from visitors.LabelCollector import LabelCollector
 from utils.tree import generate_graph_tree
 
 
-def main(argv):
+TEST_FILE_NAME = "test_files/test1.txt"
+SHOW_SOURCE_LINES = True
+ADD_PREFIX = False
+
+def main():
     # Создание потока входных данных
-    input_stream = FileStream("test_files/test1.txt", encoding="utf-8")
+    input_stream = FileStream(TEST_FILE_NAME, encoding="utf-8")
 
     # Создаем лексер и парсер
     lexer = ASICLexer(input_stream)
@@ -18,7 +22,8 @@ def main(argv):
 
     # Парсим программу и создаем дерево разбора
     tree = parser.prog()
-    print("Дерево разбора создано:", tree.toStringTree(recog=parser))
+    print("Дерево разбора создано")
+    # print(tree.toStringTree(recog=parser))
     generate_graph_tree(tree, parser)
 
     # Проверка на наличие ошибок
@@ -27,7 +32,7 @@ def main(argv):
     else:
         print("No syntax errors found.")
 
-    print("\n==================\n")
+    print_break()
 
     # Первый проход: сбор меток
     label_collector = LabelCollector()
@@ -37,18 +42,32 @@ def main(argv):
     print("Найденные метки и их адреса:", labels)
     print("Найденные конфигурации и их индексы:", configs)
 
-    print("\n==================\n")
+    print_break()
 
     # Второй проход: генерация машинного кода
     code_generator = CodeGenerator(labels, configs)
     code_generator.visit(tree)
+    code_generator.insert_wait_instructions()
+    print_code(code_generator)
+
+
+def print_break():
+    break_line = "=" * 30
+    print(f"\n{break_line}\n")
+
+
+def print_code(code_generator: CodeGenerator):
     print("Сгенерированный машинный код (hex):")
+    print(code_generator.get_full_code_hex_str(prefix=ADD_PREFIX,
+                                               show_source_line=SHOW_SOURCE_LINES,
+                                               split_bytes=True))
 
-    print(code_generator.get_full_code_str(prefix=False))
+    print_break()
+
     print("Сгенерированный машинный код (binary):")
+    print(code_generator.get_full_code_binary_str(show_source_line=SHOW_SOURCE_LINES))
 
-    print(code_generator.get_full_code_binary())
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()

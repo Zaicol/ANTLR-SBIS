@@ -1,7 +1,8 @@
 from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
-from models.BitInstruction import BitInstruction, BitConfig
+from models.BitInstruction import BitInstruction
+from models.BitConfig import BitConfig
 
 
 def stdop_match(ctx_text):
@@ -37,12 +38,16 @@ def aluop_match(ctx_text):
 
 
 class CodeGenerator(ASICParserVisitor):
+    labels: dict[str, int] = {}              # Метки и их адреса
+    configs: dict[str, int] = {}             # Конфигурации и их индексы
+    config_code: list[BitConfig] = []        # Список конфигураций (128 бит)
+    machine_code: list[BitInstruction] = []  # Список инструкций (32 бита)
+    for_loops: list[str] = []                # Список циклов
+    current_source_line: int = 0             # Текущая строка исходного кода
+
     def __init__(self, labels, configs):
-        self.labels = labels                          # Метки и их адреса
-        self.configs = configs                        # Конфигурации и их индексы
-        self.machine_code: list[BitInstruction] = []  # Список инструкций (32 бита)
-        self.config_code: list[BitConfig] = []        # Список конфигураций (128 бит)
-        self.for_loops: list[str] = []                # Список циклов
+        self.labels = labels
+        self.configs = configs
 
     def visitSreg(self, ctx: ASICParser.SregContext):
         regs = {
@@ -185,7 +190,6 @@ class CodeGenerator(ASICParserVisitor):
                 bit_index = 3
             case _:
                 raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
-        print(bit_index)
         self.machine_code[-1][bit_index] = '1'
         return self.visitChildren(ctx)
 
@@ -211,11 +215,13 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.machine_code.append(BitInstruction())
+        self.current_source_line += 1
+        self.machine_code.append(BitInstruction(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
     def visitDefinition(self, ctx: ASICParser.DefinitionContext):
-        self.config_code.append(BitConfig())
+        self.current_source_line += 1
+        self.config_code.append(BitConfig(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
     def visitConst_expr(self, ctx: ASICParser.Const_exprContext):
@@ -274,38 +280,50 @@ class CodeGenerator(ASICParserVisitor):
 
     # ====== Методы для вывода кода ======
 
-    def get_machine_code(self):
+    def get_machine_code(self) -> list[BitInstruction]:
         return self.machine_code
 
-    def get_config_code(self):
+    def get_config_code(self) -> list[BitConfig]:
         return self.config_code
 
-    def get_full_code(self, prefix=False) -> list[str]:
+    def get_full_code_hex(self, prefix=False,
+                          show_source_line=False,
+                          split_bytes=False) -> list[str]:
         result = [f"#conf {len(self.config_code)}"]
         prefix_str = "0x" if prefix else ""
         for config in self.config_code:
-            conf_hex = config.to_hex_list(False)
-            result += [prefix_str + conf_hex[i] for i in range(4)]
+            source_line = f"{config.source_line}:\t" if show_source_line else ""
+            conf_hex = config.to_hex(False, split_bytes)
+            result += [source_line + prefix_str + conf_hex[i] for i in range(4)]
 
         result += [f"#prog {len(self.machine_code)}"]
         for instruction in self.machine_code:
-            inst_hex = instruction.to_hex(False)
-            result += [prefix_str + inst_hex]
+            source_line = f"{instruction.source_line}:\t" if show_source_line else ""
+            inst_hex = instruction.to_hex_str(False, split_bytes)
+            result.append(source_line + prefix_str + inst_hex)
         return result
 
-    def get_full_code_binary(self, prefix=False) -> list[str]:
+    def get_full_code_binary(self, prefix=False, show_source_line=False) -> list[str]:
         result = [f"#conf {len(self.config_code)}"]
         prefix_str = "0x" if prefix else ""
         for config in self.config_code:
-            conf_hex = config.to_binary_list()
-            result += [prefix_str + conf_hex[i] for i in range(4)]
+            source_line = f"{config.source_line}:\t" if show_source_line else ""
+            config_bin_list = config.to_binary_list()
+            result += [source_line + prefix_str + config_bin_list[i] for i in range(4)]
 
         result += [f"#prog {len(self.machine_code)}"]
         for instruction in self.machine_code:
-            inst_hex = instruction.to_binary_list()
-            result += [prefix_str + inst_hex[0]]
-        return "\n".join(result)
+            source_line = f"{instruction.source_line}:\t" if show_source_line else ""
+            instruction_bin_list = instruction.to_binary_list()
+            result.append(source_line + prefix_str + instruction_bin_list[0])
+        return result
 
-    def get_full_code_str(self, prefix=False) -> str:
-        code = self.get_full_code(prefix)
+    def get_full_code_hex_str(self, prefix=False,
+                              show_source_line=False,
+                              split_bytes=False) -> str:
+        code = self.get_full_code_hex(prefix, show_source_line, split_bytes)
+        return "\n".join(code)
+
+    def get_full_code_binary_str(self, prefix=False, show_source_line=False) -> str:
+        code = self.get_full_code_binary(prefix, show_source_line)
         return "\n".join(code)

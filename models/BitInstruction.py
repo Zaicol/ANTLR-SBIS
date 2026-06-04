@@ -1,9 +1,13 @@
 class BitInstruction:
+    len: int = 32
+    bits: list[str] = []  # 32 бита, индекс от 0 до 31 (бит 0 — самый младший)
+    source_line: int = 0
     # TODO: Вынести всё в константы
     # TODO: Переписать с использованием int
-    def __init__(self):
-        self.len: int = 32
-        self.bits: list[str] = ['0'] * self.len  # 32 бита, индекс от 0 до 31 (бит 0 — самый младший)
+
+    def __init__(self, source_line: int = 0):
+        self.source_line = source_line
+        self.bits = ['0' for _ in range(self.len)]
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
@@ -53,9 +57,15 @@ class BitInstruction:
         return ''.join(self.bits)
 
     def __repr__(self):
-        return f"BitInstruction({''.join(self.bits)})"
+        return f"BitInstruction({self.source_line}: {''.join(self.bits)})"
 
-    def to_hex_list(self, prefix=False):
+    def set_source_line(self, source_line: int):
+        self.source_line = source_line
+
+    def get_source_line(self):
+        return self.source_line
+
+    def to_hex(self, prefix=False, split_bytes=False) -> list[str]:
         hex_map = {
             '0000': '0', '0001': '1', '0010': '2', '0011': '3',
             '0100': '4', '0101': '5', '0110': '6', '0111': '7',
@@ -69,6 +79,9 @@ class BitInstruction:
             hex_str = '0x' if prefix else ''
             bit_part = self.bits[i:i + 32]
             for j in range(0, 32, 4):
+                if split_bytes and j % 8 == 0 and j != 0:
+                    hex_str += ' '
+
                 nibble = ''.join(bit_part[j:j + 4])
                 hex_str += hex_map.get(nibble, '?')
 
@@ -76,23 +89,22 @@ class BitInstruction:
 
         return hex_list[::-1]
 
-    def to_hex(self, prefix=False):
+    def to_hex_str(self, prefix=False, split_bytes=False):
         """
         Converts the 32-bit instruction to a hexadecimal string.
+            :param prefix: If True, adds '0x' prefix. Default is True.
+            :param split_bytes: If True, adds space between bytes. Default is False.
 
-        Args:
-            prefix (bool): If True, adds '0x' prefix. Default is True.
-
-        Returns:
-            str: Hexadecimal representation of the instruction (uppercase).
+            :return: Hexadecimal representation of the instruction (uppercase).
         """
-        return ("0x" if prefix else "") + ''.join(self.to_hex_list())
+        hex_str = ''.join(self.to_hex(prefix, split_bytes))
+        return ("0x" if prefix else "") + hex_str
 
-    def to_binary_list(self) -> list[str]:
+    def to_binary_list(self, size=32) -> list[str]:
 
         # Split into groups of 4 bits from left to right (MSB to LSB)
         bin_list = []
-        for i in range(0, self.len, 32):
+        for i in range(0, self.len, size):
             tmp_list = []
             for j in range(8):
                 tmp_list.append(''.join(self.bits[i + j * 4:i + j * 4 + 4]))
