@@ -278,6 +278,50 @@ class CodeGenerator(ASICParserVisitor):
         # TODO: Реализовать
         return
 
+    def is_wait_next(self, index: int) -> bool:
+        if len(self.machine_code) > index + 1:
+            return False
+        return self.machine_code[index].is_wait()
+
+    def insert_wait_instructions(self):
+        def make_wait_instruction(cycles: int, source_line: int) -> BitInstruction:
+            new_instruction = BitInstruction(source_line=source_line)
+            new_instruction.set_wait(cycles)
+            return new_instruction
+
+        result = []
+        last_active_index = -1
+
+        for i, instruction in enumerate(self.machine_code):
+            result.append(instruction)
+
+            if instruction.is_start_gen():
+                if self.is_wait_next(i):
+                    self.machine_code[i].set_wait(max(self.machine_code[i].get_wait(), 4))
+                else:
+                    result.append(make_wait_instruction(4, instruction.get_source_line()))
+                continue
+
+            if instruction.is_wrout():
+                if self.is_wait_next(i):
+                    self.machine_code[i].set_wait(max(self.machine_code[i].get_wait(), 5))
+                else:
+                    result.append(make_wait_instruction(5, instruction.get_source_line()))
+                continue
+
+            if instruction.is_active_standard():
+                if last_active_index != -1:
+                    gap = len(result) - last_active_index - 1
+
+                    if gap < 128:
+                        needed = 128 - gap
+                        result.append(make_wait_instruction(needed, instruction.get_source_line()))
+
+                last_active_index = len(result) - 1
+                continue
+
+        self.machine_code = result
+
     # ====== Методы для вывода кода ======
 
     def get_machine_code(self) -> list[BitInstruction]:
