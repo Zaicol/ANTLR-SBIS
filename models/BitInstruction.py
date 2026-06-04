@@ -1,7 +1,5 @@
 class BitInstruction:
     len: int = 32
-    bits: list[str] = []  # 32 бита, индекс от 0 до 31 (бит 0 — самый младший)
-    source_line: int = 0
     # TODO: Вынести всё в константы
     # TODO: Переписать с использованием int
 

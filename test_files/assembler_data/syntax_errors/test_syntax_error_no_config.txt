@@ -1,0 +1,2 @@
+cmp = a1(conf_1);
+eop;

@@ -1,0 +1,8 @@
+r1 = $3;
+l0: v1 = gen;
+wait(2);
+r1 --;
+jnz(r1, l0);
+l1: v2 = gen;
+wait(1);
+eop;

@@ -1,0 +1,8 @@
+r1 = $0;
+wait(1);
+v1 = gen;
+wait(10);
+wait(100);
+wait(255);
+r2 = $0;
+eop;

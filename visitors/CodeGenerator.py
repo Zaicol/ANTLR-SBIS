@@ -48,6 +48,10 @@ class CodeGenerator(ASICParserVisitor):
     def __init__(self, labels, configs):
         self.labels = labels
         self.configs = configs
+        self.config_code = []
+        self.machine_code = []
+        self.for_loops = []
+        self.current_source_line = 0
 
     def visitSreg(self, ctx: ASICParser.SregContext):
         regs = {
