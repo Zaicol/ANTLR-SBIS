@@ -1,7 +1,9 @@
 class BitInstruction:
+    # TODO: Вынести всё в константы
+    # TODO: Переписать с использованием int
     def __init__(self):
-        self.len = 32
-        self.bits = ['0'] * self.len  # 32 бита, индекс от 0 до 31 (бит 0 — самый младший)
+        self.len: int = 32
+        self.bits: list[str] = ['0'] * self.len  # 32 бита, индекс от 0 до 31 (бит 0 — самый младший)
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
@@ -93,7 +95,7 @@ class BitInstruction:
         for i in range(0, self.len, 32):
             tmp_list = []
             for j in range(8):
-                tmp_list.append(''.join(self.bits[i+j*4:i + j * 4 + 4]))
+                tmp_list.append(''.join(self.bits[i + j * 4:i + j * 4 + 4]))
             bin_list.append('_'.join(tmp_list))
 
         return bin_list[::-1]
@@ -104,6 +106,139 @@ class BitInstruction:
             if bit == '1':
                 indices.append(self.len - 1 - i)
         return indices
+
+    def set_wait(self, cycles: int):
+        self[27] = '1'
+        self[7:0] = format(cycles, '08b')
+
+    # ===================== BOOLEAN МЕТОДЫ =====================
+    # === БАЗОВЫЕ ПРИЗНАКИ ===
+
+    def is_standard(self) -> bool:
+        return self[24] == '1'
+
+    def is_service(self) -> bool:
+        return self[24] == '0'
+
+    def is_active(self) -> bool:
+        return self[2] == '1'
+
+    def is_passive(self) -> bool:
+        return self[2] == '0'
+
+    def is_wait(self) -> bool:
+        return self[27] == '1'
+
+    def is_eop(self) -> bool:
+        return self[31] == '1'
+
+    # === ОПЕРАЦИИ С ДАННЫМИ ===
+
+    def is_start_gen(self) -> bool:
+        return self[0] == '1'
+
+    def is_wrout(self) -> bool:
+        return self[1] == '1'
+
+    def is_read(self) -> bool:
+        return self[2] == '1'
+
+    def uses_wbuf_mask(self) -> bool:
+        return any(self[i] == '1' for i in range(16, 20))
+
+    def uses_xor_write(self) -> bool:
+        return self[20] == '1'
+
+    def uses_and_write(self) -> bool:
+        return self[21] == '1'
+
+    # ===================== РАБОТА С БЛОКАМИ =====================
+
+    def is_alu(self) -> bool:
+        return self[15] == '1'
+
+    def is_sp(self) -> bool:
+        return self[15] == '0'
+
+    def get_active_block(self) -> int:
+        return (
+                (int(self[12]) << 0) |
+                (int(self[13]) << 1) |
+                (int(self[14]) << 2)
+        )
+
+    # === СЛУЖЕБНЫЕ ИНСТРУКЦИИ ===
+
+    def get_type1(self) -> int:
+        return (
+                (int(self[25]) << 0) |
+                (int(self[26]) << 1)
+        )
+
+    def is_init(self) -> bool:
+        return self.is_service() and self.get_type1() == 0
+
+    def is_inc_dec(self) -> bool:
+        return self.is_service() and self.get_type1() == 1
+
+    def is_assign(self) -> bool:
+        return self.is_service() and self.get_type1() == 2
+
+    def is_jump(self) -> bool:
+        return self.is_service() and self.get_type1() == 3
+
+    # === РЕГИСТРЫ ===
+
+    def get_reg(self) -> int:
+        return (int(self[28]) << 0) | (int(self[29]) << 1)
+
+    def is_inc(self) -> bool:
+        return self.is_inc_dec() and self[30] == '1'
+
+    def is_dec(self) -> bool:
+        return self.is_inc_dec() and self[30] == '0'
+
+    # === СОСТАВНЫЕ ПРИЗНАКИ ДЛЯ WAIT ===
+
+    def is_active_standard(self) -> bool:
+        return self.is_standard() and self.is_active()
+
+    def is_passive_standard(self) -> bool:
+        return self.is_standard() and self.is_passive()
+
+    def is_long_latency_op(self) -> bool:
+        return self.is_active_standard()
+
+    def requires_gen_wait(self) -> bool:
+        return self.is_start_gen()
+
+    def requires_wrout_wait(self) -> bool:
+        return self.is_wrout()
+
+    def modifies_register(self) -> bool:
+        return self.is_init() or self.is_inc_dec() or self.is_assign()
+
+    def is_data_dependent_candidate(self) -> bool:
+        return (
+                self.is_active_standard()
+                or self.is_wrout()
+                or self.is_start_gen()
+        )
+
+    def get_wait(self):
+        if not self.is_wait():
+            return 0
+        return (
+                (int(self[0]) << 0) |
+                (int(self[1]) << 1) |
+                (int(self[2]) << 2) |
+                (int(self[3]) << 3) |
+                (int(self[4]) << 4) |
+                (int(self[5]) << 5) |
+                (int(self[6]) << 6) |
+                (int(self[7]) << 7)
+        )
+
 
 
 class BitConfig(BitInstruction):
