@@ -38,6 +38,7 @@ def main():
     else:
         print("No syntax errors found.")
 
+    print(tree.toStringTree(recog=parser))
     print_break()
 
     # Первый проход: сбор меток
@@ -45,8 +46,10 @@ def main():
     label_collector.visit(tree)
     labels = label_collector.get_labels()
     configs = label_collector.get_configs()
+    defines = label_collector.get_defines()
     print("Найденные метки и их адреса:", labels)
     print("Найденные конфигурации и их индексы:", configs)
+    print("Найденные макросы:", defines)
 
     print_break()
 
