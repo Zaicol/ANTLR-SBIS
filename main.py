@@ -2,6 +2,7 @@ import sys
 from antlr4 import *
 from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
+from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
 from visitors.CodeGenerator import CodeGenerator
 from visitors.LabelCollector import LabelCollector
 from utils.tree import generate_graph_tree
@@ -11,6 +12,7 @@ TEST_FILE_NAME = "test_files/test1.txt"
 SHOW_SOURCE_LINES = True
 ADD_PREFIX = False
 
+
 def main():
     # Создание потока входных данных
     input_stream = FileStream(TEST_FILE_NAME, encoding="utf-8")
@@ -19,6 +21,10 @@ def main():
     lexer = ASICLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
     parser = ASICParser(token_stream)
+
+    parser.removeErrorListeners()
+    error_listener = AssemblerErrorListener()
+    parser.addErrorListener(error_listener)
 
     # Парсим программу и создаем дерево разбора
     tree = parser.prog()

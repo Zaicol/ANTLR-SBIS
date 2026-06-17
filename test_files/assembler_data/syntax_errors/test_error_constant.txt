@@ -1,0 +1,2 @@
+DEFINE test 1234;
+eop;

@@ -4,6 +4,10 @@ import sys
 from antlr4 import *
 from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
+from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
+from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
+from models.exceptions.BitValueError import BitValueError
+from models.exceptions.SemanticError import SemanticError
 from visitors.CodeGenerator import CodeGenerator
 from visitors.LabelCollector import LabelCollector
 
@@ -30,6 +34,10 @@ class ANTLRCompilerTest(unittest.TestCase):
         lexer = ASICLexer(input_stream)
         token_stream = CommonTokenStream(lexer)
         parser = ASICParser(token_stream)
+
+        parser.removeErrorListeners()
+        error_listener = AssemblerErrorListener()
+        parser.addErrorListener(error_listener)
 
         tree = parser.prog()
         has_errors = parser.getNumberOfSyntaxErrors() > 0
@@ -149,7 +157,6 @@ class ANTLRCompilerTest(unittest.TestCase):
         binary_lines = [line for line in binary_code.split('\n')
                         if ':' in line and not line.strip().startswith('#')]
 
-
         self.assertEqual(len(hex_lines), len(binary_lines),
                          "Количество инструкций в hex и binary не совпадает")
 
@@ -169,7 +176,7 @@ class ANTLRCompilerTest(unittest.TestCase):
                              f"Строки с номером {hex_line_num} различаются")
 
     def test_no_syntax_errors(self):
-        """Тест что все валидные файлы не содержат синтаксических ошибок"""
+        """Тест, что все валидные файлы не содержат синтаксических ошибок"""
         test_files = [
             "test_empty.txt",
             "test_simple_instructions.txt",
@@ -185,20 +192,21 @@ class ANTLRCompilerTest(unittest.TestCase):
                 self.assertFalse(has_errors,
                                  f"Файл {filename} содержит синтаксические ошибки")
 
-
     def test_has_syntax_errors(self):
-        """Тест что все валидные файлы не содержат синтаксических ошибок"""
+        """Тест на определение ошибок"""
         test_dir = "syntax_errors"
-        test_files = [
-            "test_syntax_error_unknown_operator.txt",
-            "test_syntax_error_no_config.txt"
+        test_cases = [
+            ("test_error_unknown_operator.txt", AssemblerSyntaxError),
+            ("test_error_no_config.txt", SemanticError),
+            ("test_error_constant.txt", BitValueError),
         ]
 
-        for filename in test_files:
-            with self.subTest(file=filename):
-                _, _, _, has_errors = self.generate_machine_code(os.path.join(test_dir, filename))
-                self.assertTrue(has_errors,
-                                 f"В файле {filename} не найдены синтаксические ошибки")
+        for filename, expected_exception in test_cases:
+            with self.subTest(file=filename, error=expected_exception.__name__):
+                filepath = os.path.join(test_dir, filename)
+
+                with self.assertRaises(expected_exception):
+                    self.generate_machine_code(filepath)
 
 
 def run_tests():

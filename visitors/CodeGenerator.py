@@ -3,6 +3,9 @@ from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
 from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
+from models.exceptions.AssemblerError import AssemblerError
+from models.exceptions.BitValueError import BitValueError
+from models.exceptions.SemanticError import SemanticError
 
 
 def stdop_match(ctx_text):
@@ -116,7 +119,7 @@ class CodeGenerator(ASICParserVisitor):
         # Отделяем определение метки от её использования
         if not isinstance(ctx.parentCtx, ASICParser.LblContext):
             if not ctx.getText() in self.labels:
-                raise Exception("Метка " + ctx.getText() + " не определена")
+                raise SemanticError("Метка " + ctx.getText() + " не определена")
             self.machine_code[-1][7:0] = format(self.labels[ctx.getText()], '08b')
         return self.visitChildren(ctx)
 
@@ -157,10 +160,10 @@ class CodeGenerator(ASICParserVisitor):
             value = int(num_part, 10)
 
         else:
-            raise ValueError(f"Неизвестный тип константы: {text}")
+            raise AssemblerError(f"Неизвестный тип константы: {text}")
 
         if not (0 <= value <= 255):
-            raise ValueError(f"Константа {text} не помещается в 8 бит (допустимый диапазон: 0–255)")
+            raise BitValueError(f"Константа {text} не помещается в 8 бит (допустимый диапазон: 0–255)")
 
         self.machine_code[-1][7:0] = format(value, '08b')
         return self.visitChildren(ctx)
@@ -214,7 +217,7 @@ class CodeGenerator(ASICParserVisitor):
     def visitConfig_name(self, ctx: ASICParser.Config_nameContext):
         if not isinstance(ctx.parentCtx, ASICParser.Config_defContext):
             if not ctx.getText() in self.configs:
-                raise Exception("Конфигурация " + ctx.getText() + " не определена")
+                raise SemanticError("Конфигурация " + ctx.getText() + " не определена")
             self.machine_code[-1][9:4] = format(self.configs[ctx.getText()], '06b')
         return self.visitChildren(ctx)
 
