@@ -54,7 +54,7 @@ def main():
     print_break()
 
     # Второй проход: генерация машинного кода
-    code_generator = CodeGenerator(labels, configs)
+    code_generator = CodeGenerator(labels, configs, defines)
     code_generator.visit(tree)
     code_generator.insert_wait_instructions()
     print_code(code_generator)
@@ -75,7 +75,6 @@ def print_code(code_generator: CodeGenerator):
 
     print("Сгенерированный машинный код (binary):")
     print(code_generator.get_full_code_binary_str(show_source_line=SHOW_SOURCE_LINES))
-
 
 
 if __name__ == '__main__':

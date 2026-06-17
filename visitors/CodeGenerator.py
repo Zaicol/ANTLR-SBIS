@@ -1,3 +1,5 @@
+from typing import Any
+
 from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
@@ -6,6 +8,7 @@ from models.BitConfig import BitConfig
 from models.exceptions.AssemblerError import AssemblerError
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.SemanticError import SemanticError
+from visitors.ExpressionEvaluator import ExpressionEvaluator
 
 
 def stdop_match(ctx_text):
@@ -43,18 +46,25 @@ def aluop_match(ctx_text):
 class CodeGenerator(ASICParserVisitor):
     labels: dict[str, int] = {}              # Метки и их адреса
     configs: dict[str, int] = {}             # Конфигурации и их индексы
+    defines: dict[str, Any] = {}             # Макросы и их значения
     config_code: list[BitConfig] = []        # Список конфигураций (128 бит)
     machine_code: list[BitInstruction] = []  # Список инструкций (32 бита)
     for_loops: list[str] = []                # Список циклов
     current_source_line: int = 0             # Текущая строка исходного кода
+    expr_evaluator: ExpressionEvaluator      # Объект для вычисления выражений
 
-    def __init__(self, labels, configs):
+    def __init__(self, labels, configs, defines):
         self.labels = labels
         self.configs = configs
+        self.defines = defines
         self.config_code = []
         self.machine_code = []
         self.for_loops = []
         self.current_source_line = 0
+        self.expr_evaluator = ExpressionEvaluator(self.defines, self.current_source_line)
+
+    def visitDefine_def(self, ctx: ASICParser.Define_defContext):
+        return
 
     def visitSreg(self, ctx: ASICParser.SregContext):
         regs = {
@@ -123,50 +133,10 @@ class CodeGenerator(ASICParserVisitor):
             self.machine_code[-1][7:0] = format(self.labels[ctx.getText()], '08b')
         return self.visitChildren(ctx)
 
-    def visitConstant(self, ctx: ASICParser.ConstantContext):
-        token = ctx.getChild(0).getSymbol()
-        token_type = token.type
-        text = ctx.getText()
-        text_up = text.upper()
-
-        if token_type == ASICLexer.HEXADECIMAL:
-            if text_up.endswith('H'):
-                num_part = text[:-1]
-            else:  # начинается с 0x или 0X
-                num_part = text[2:]
-            value = int(num_part, 16)
-
-        elif token_type == ASICLexer.BINARY:
-            if text_up.endswith('B'):
-                num_part = text[:-1]
-            else:  # начинается с 0b или 0B
-                num_part = text[2:]
-            value = int(num_part, 2)
-
-        elif token_type == ASICLexer.OCTAL:
-            if text_up.endswith('O'):
-                num_part = text[:-1]
-            else:  # начинается с 0o или 0O
-                num_part = text[2:]
-            value = int(num_part, 8)
-
-        elif token_type == ASICLexer.DECIMAL:
-            if text_up.endswith('D'):
-                num_part = text[:-1]
-            elif text_up.startswith('0D'):
-                num_part = text[2:]
-            else:
-                num_part = text
-            value = int(num_part, 10)
-
-        else:
-            raise AssemblerError(f"Неизвестный тип константы: {text}")
-
-        if not (0 <= value <= 255):
-            raise BitValueError(f"Константа {text} не помещается в 8 бит (допустимый диапазон: 0–255)")
-
+    def visitExpression(self, ctx: ASICParser.ExpressionContext):
+        value: int = self.expr_evaluator.visit_line(ctx, self.current_source_line)
         self.machine_code[-1][7:0] = format(value, '08b')
-        return self.visitChildren(ctx)
+        return self.expr_evaluator.visit(ctx)
 
     def visitArith(self, ctx: ASICParser.ArithContext):
         op = ctx.getChild(1).getText()
