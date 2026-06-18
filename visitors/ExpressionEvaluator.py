@@ -18,17 +18,180 @@ class ExpressionEvaluator(ASICParserVisitor):
 
     def visit_line(self, ctx, line):
         self.line = line
-        return super().visit(ctx)
+        res = super().visit(ctx)
+        print("result:", res)
+        if not (0 <= res <= 255):
+            raise BitValueError(f"Константа {res} не помещается в 8 бит (допустимый диапазон: 0–255)")
+
+        return res
 
     def visitExpression(self, ctx: ASICParser.ExpressionContext):
-        return self.visitChildren(ctx)
+        if ctx.constant():
+            return self.visit(ctx.constant())
+
+        return self.visit(ctx.logicalor_expression())
+
+    def visitUnary_expression(self, ctx: ASICParser.Unary_expressionContext):
+        if ctx.primary_expression():
+            return self.visit(ctx.primary_expression())
+
+        value = self.visit(ctx.unary_expression())
+        oper = ctx.unary_operator().getText()
+
+        if oper == '+':
+            return value
+
+        if oper == '-':
+            return -value
+
+        if oper == '~':
+            return ~value
+
+        if oper.lower() == 'neg':
+            return int(not value)
+
+        raise AssemblerSyntaxError(f"Unknown unary operator: {oper}", self.line)
+
+    def visitMultiplicative_expression(self, ctx: ASICParser.Multiplicative_expressionContext):
+        result = self.visit(ctx.unary_expression(0))
+
+        for i, op_ctx in enumerate(ctx.mulop()):
+            right = self.visit(ctx.unary_expression(i + 1))
+            oper = op_ctx.getText()
+
+            if oper == '*':
+                result *= right
+
+            elif oper == '/':
+                result //= right
+
+            elif oper == '%':
+                result %= right
+
+            else:
+                raise AssemblerSyntaxError(
+                    f"Unknown operator: {oper}",
+                    self.line
+                )
+
+        return result
 
     def visitAdditive_expression(self, ctx: ASICParser.Additive_expressionContext):
-        left = self.visit(ctx.multiplicative_expression(0))
-        right = self.visit(ctx.multiplicative_expression(1))
-        if ctx.addop(0).getText() != '+':
-            raise AssemblerSyntaxError("Unknown operator: " + ctx.addop(0).getText(), self.line)
-        return left + right
+        result = self.visit(ctx.multiplicative_expression(0))
+
+        for i, op_ctx in enumerate(ctx.addop()):
+            right = self.visit(ctx.multiplicative_expression(i + 1))
+            oper = op_ctx.getText()
+
+            if oper == '+':
+                result += right
+
+            elif oper == '-':
+                result -= right
+
+            else:
+                raise AssemblerSyntaxError(
+                    f"Unknown operator: {oper}",
+                    self.line
+                )
+
+        return result
+
+    def visitRelational_expression(self, ctx: ASICParser.Relational_expressionContext):
+        result = self.visit(ctx.additive_expression(0))
+
+        for i, op_ctx in enumerate(ctx.relop()):
+            right = self.visit(ctx.additive_expression(i + 1))
+            oper = op_ctx.getText()
+
+            if oper == '<':
+                result = int(result < right)
+
+            elif oper == '>':
+                result = int(result > right)
+
+            elif oper == '<=':
+                result = int(result <= right)
+
+            elif oper == '>=':
+                result = int(result >= right)
+
+            else:
+                raise AssemblerSyntaxError(
+                    f"Unknown operator: {oper}",
+                    self.line
+                )
+
+        return result
+
+    def visitEquality_expression(self, ctx: ASICParser.Equality_expressionContext):
+        result = self.visit(ctx.relational_expression(0))
+
+        for i, op_ctx in enumerate(ctx.eqop()):
+            right = self.visit(ctx.relational_expression(i + 1))
+            oper = op_ctx.getText()
+
+            if oper == '==':
+                result = int(result == right)
+
+            elif oper == '!=':
+                result = int(result != right)
+
+            else:
+                raise AssemblerSyntaxError(
+                    f"Unknown operator: {oper}",
+                    self.line
+                )
+
+        return result
+
+    def visitAnd_expression(self, ctx: ASICParser.And_expressionContext):
+        result = self.visit(ctx.equality_expression(0))
+
+        for i in range(1, len(ctx.equality_expression())):
+            result &= self.visit(ctx.equality_expression(i))
+
+        return result
+
+    def visitXor_expression(self, ctx: ASICParser.Xor_expressionContext):
+        result = self.visit(ctx.and_expression(0))
+
+        for i in range(1, len(ctx.and_expression())):
+            result ^= self.visit(ctx.and_expression(i))
+
+        return result
+
+    def visitOr_expression(self, ctx: ASICParser.Or_expressionContext):
+        result = self.visit(ctx.xor_expression(0))
+
+        for i in range(1, len(ctx.xor_expression())):
+            result |= self.visit(ctx.xor_expression(i))
+
+        return result
+
+    def visitLogicaland_expression(self, ctx: ASICParser.Logicaland_expressionContext):
+        result = self.visit(ctx.or_expression(0))
+
+        for i in range(1, len(ctx.or_expression())):
+            result = int(
+                bool(result)
+                and
+                bool(self.visit(ctx.or_expression(i)))
+            )
+
+        return result
+
+    def visitLogicalor_expression(self, ctx: ASICParser.Logicalor_expressionContext):
+        result = self.visit(ctx.logicaland_expression(0))
+
+        for i in range(1, len(ctx.logicaland_expression())):
+            result = int(
+                bool(result)
+                or
+                bool(self.visit(ctx.logicaland_expression(i)))
+            )
+
+        return result
 
     def visitDefine_name(self, ctx: ASICParser.Define_nameContext):
         if not ctx.getText() in self.defines:
@@ -77,7 +240,9 @@ class ExpressionEvaluator(ASICParserVisitor):
         else:
             raise AssemblerError(f"Неизвестный тип константы: {text}")
 
-        if not (0 <= value <= 255):
-            raise BitValueError(f"Константа {text} не помещается в 8 бит (допустимый диапазон: 0–255)")
-
         return value
+
+    def visit_if_not_null(self, expr):
+        if expr is None:
+            return None
+        return self.visit(expr)
