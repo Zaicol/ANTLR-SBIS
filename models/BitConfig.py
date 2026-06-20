@@ -2,10 +2,46 @@ from models.BitInstruction import BitInstruction
 
 
 class BitConfig(BitInstruction):
+    # Адреса аргументов
+    # Аргументы для MUX
+    A1 = slice(1, 0, -1)
+    A2 = slice(3, 2, -1)
+    A3 = slice(5, 4, -1)
+    A4 = slice(7, 6, -1)
+
+    REC3 = 8  # признак чтения из БПК2
+    AC = slice(11, 10, -1)  # способ формирования адреса чтения константы const3 из БПК2
+    ARR = slice(13, 12, -1)  # номер регистра, адресующего порт чтения БПК
+    DIR = 14  # признак использования регистра или прямого адреса arc1
+
+    # Адреса констант в БПК
+    ARC1 = slice(22, 16, -1)
+    ARC2 = slice(30, 24, -1)
+
+    # Аргументы для TRUNC
+    TR_R1 = slice(39, 32, -1)
+    TR_R2 = slice(47, 40, -1)
+    TR_R3 = slice(55, 48, -1)
+    TR_R4 = slice(63, 56, -1)
+
+    # Аргументы для SHIFT
+    SH_R1 = slice(71, 64, -1)
+    SH_R2 = slice(79, 72, -1)
+    SH_R3 = slice(87, 80, -1)
+    SH_R4 = slice(95, 88, -1)
+
+    SH_C1 = slice(103, 96, -1)
+    SH_C2 = slice(111, 104, -1)
+    SH_C3 = slice(119, 112, -1)
+
+    # Аргументы для REV
+    REV_REG = 120
+    REV_TXT = 121
+
     def __init__(self, bits: str = None, source_line: int = 0):
         super().__init__()
         self.len = 128
-        self.bits = ['0'] * self.len
+        self.bits = [0 for _ in range(self.len)]
         if bits is not None:
             if len(bits) != self.len:
                 raise ValueError(f"Invalid bit string length. Expected {self.len}, got {len(bits)}")
@@ -24,50 +60,49 @@ class BitConfig(BitInstruction):
         return result
 
     def set_constant(self, value: int, shift_value: int = None):
-        formatted_value = format(value, '07b')
         match self.constant_index:
             case 0:
-                self[22:16] = formatted_value
+                self[self.ARC1] = value
                 if shift_value is not None:
-                    self[103:96] = format(shift_value, '08b')
+                    self[self.SH_C1] = shift_value
             case 1:
-                self[30:24] = formatted_value
+                self[self.ARC2] = value
                 if shift_value is not None:
-                    self[111:104] = format(shift_value, '08b')
+                    self[self.SH_C2] = shift_value
             case 2:
                 if shift_value is not None:
-                    self[119:112] = format(shift_value, '08b')
-
+                    self[self.SH_C3] = shift_value
         self.constant_index = self.constant_index + 1
 
     def set_a_input(self, space: int, reg_number: int, shift_value: int = None, significant_count: int = None):
         match space:
             case 1:
-                index_regn_a, index_regn_b = 1, 0
-                index_sign_a, index_sign_b = 39, 32
-                index_shft_a, index_shft_b = 71, 64
+                mux_param = self.A1
+                trunc_param = self.TR_R1
+                shift_param = self.SH_R1
             case 2:
-                index_regn_a, index_regn_b = 3, 2
-                index_sign_a, index_sign_b = 47, 40
-                index_shft_a, index_shft_b = 79, 72
+                mux_param = self.A2
+                trunc_param = self.TR_R2
+                shift_param = self.SH_R2
             case 3:
-                index_regn_a, index_regn_b = 5, 4
-                index_sign_a, index_sign_b = 55, 48
-                index_shft_a, index_shft_b = 87, 80
+                mux_param = self.A3
+                trunc_param = self.TR_R3
+                shift_param = self.SH_R3
             case 4:
-                index_regn_a, index_regn_b = 7, 6
-                index_sign_a, index_sign_b = 59, 52
-                index_shft_a, index_shft_b = 91, 84
+                mux_param = self.A4
+                trunc_param = self.TR_R4
+                shift_param = self.SH_R4
             case _:
                 raise ValueError(f"Invalid space: {space}")
 
-        self[index_regn_a:index_regn_b] = format(reg_number, '02b')
+        self[mux_param] = reg_number
         if significant_count is not None:
-            self[index_sign_a:index_sign_b] = format(significant_count, '08b')
+            self[trunc_param] = significant_count
         if shift_value is not None:
-            self[index_shft_a:index_shft_b] = format(shift_value, '08b')
+            self[shift_param] = shift_value
 
     def set_input(self, reg_name: str, shift_value: int = None, significant_count: int = 32):
+        # Определяем, куда вместится вход
         fit_space = []
         match reg_name:
             case "v1":
@@ -89,3 +124,9 @@ class BitConfig(BitInstruction):
         chosen_space = list(found_space)[0]
         self.free_spaces.remove(chosen_space)
         self.set_a_input(chosen_space, 0, shift_value, significant_count)
+
+    def set_rev_reg(self):
+        self[self.REV_REG] = True
+
+    def set_rev_txt(self):
+        self[self.REV_TXT] = True

@@ -1,33 +1,50 @@
+from models.enums.InstructionEnums import *
+
+
 class BitInstruction:
     len: int = 32
-    # TODO: Вынести всё в константы
-    # TODO: Переписать с использованием int
 
     def __init__(self, source_line: int = 0):
         self.source_line = source_line
-        self.bits = ['0' for _ in range(self.len)]
+        self.bits: list[int] = [0 for _ in range(self.len)]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int | slice, value: int | bool):
+
+        if isinstance(value, bool):
+            value = 1 if value else 0
+
+        if not isinstance(value, int):
+            raise TypeError("Value must be an integer")
+
         if isinstance(key, int):
-            # Установка одного бита: obj[5] = '1'
-            if not isinstance(value, str) or len(value) != 1:
-                raise ValueError("Value must be a single character '0' or '1'")
+            # Установка одного бита: obj[5] = 1
+            if not isinstance(value, int) or value not in [0, 1]:
+                raise ValueError("Value must be a single number 0 or 1")
             if key < 0 or key > self.len - 1:
-                raise IndexError(f"Bit index out of range (0..{self.len - 1})")
-            self.bits[self.len - 1 - key] = value
+                raise IndexError(f"Bit index out of range [0..{self.len - 1}]")
+            bit_idx: int = self.len - 1 - key
+            self.bits[bit_idx] = value
 
         elif isinstance(key, slice):
-            # Обработка среза, например: obj[29:28] = '01'
+            # Обработка среза, например: obj[29:28] = 01
             start, stop, step = key.indices(self.len)
 
+            # Поддержка и прямого, и обратного среза (например, [29:28] и [28:29])
             indices = list(range(start, stop - 1, -1)) if start >= stop else list(range(start, stop + 1))
-            if len(indices) != len(value):
-                raise ValueError(f"Length of value '{value}' does not match slice length {len(indices)}")
+
+            # Преобразуем число в битовую строку с нужной длиной
+            bit_length = len(indices)
+            value_str = format(value, f'0{bit_length}b')  # например: format(5, '04b') -> '0101'
+
+            if len(value_str) != bit_length:
+                # Значение слишком большое
+                raise ValueError(f"Value {value} (0b{value:b}) requires more than {bit_length} bits")
 
             for i, bit_index in enumerate(indices):
                 if bit_index < 0 or bit_index > self.len - 1:
                     raise IndexError(f"Bit index out of range (0..{self.len - 1})")
-                self.bits[self.len - 1 - bit_index] = value[i]
+                bit_idx: int = self.len - 1 - bit_index
+                self.bits[bit_idx] = int(value_str[i])
 
         else:
             raise TypeError("Index must be an integer or slice")
@@ -42,20 +59,36 @@ class BitInstruction:
         elif isinstance(key, slice):
             # Чтение диапазона битов: obj[29:28]
             start, stop, step = key.indices(self.len)
-            if step is not None and step != -1:
-                raise ValueError("Only reverse slicing supported (e.g., [29:28])")
 
             indices = list(range(start, stop - 1, -1)) if start >= stop else list(range(start, stop + 1))
-            return ''.join(self.bits[self.len - 1 - idx] for idx in indices)
+            bits_slice = [self.bits[self.len - 1 - idx] for idx in indices]
+            return int(''.join(map(str, bits_slice)), 2)
 
         else:
             raise TypeError("Index must be an integer or slice")
 
     def __str__(self):
-        return ''.join(self.bits)
+        return ''.join(str(self.bits))
 
     def __repr__(self):
-        return f"BitInstruction({self.source_line}: {''.join(self.bits)})"
+        return f"BitInstruction({self.source_line}: {self.__str__()})"
+
+    def get_str(self, key: int | slice):
+        if isinstance(key, int):
+            # Чтение одного бита: obj[5]
+            if key < 0 or key > self.len - 1:
+                raise IndexError(f"Bit index out of range (0..{self.len - 1})")
+            return str(self.bits[self.len - 1 - key])
+
+        elif isinstance(key, slice):
+            # Чтение диапазона битов: obj[29:28]
+            start, stop, step = key.indices(self.len)
+
+            indices = list(range(start, stop - 1, -1)) if start >= stop else list(range(start, stop + 1))
+            return ''.join(str(self.bits[self.len - 1 - idx]) for idx in indices)
+
+        else:
+            raise TypeError("Index must be an integer or slice")
 
     def set_source_line(self, source_line: int):
         self.source_line = source_line
@@ -75,12 +108,12 @@ class BitInstruction:
         hex_list = []
         for i in range(0, self.len, 32):
             hex_str = '0x' if prefix else ''
-            bit_part = self.bits[i:i + 32]
+            bit_word = self.bits[i:i + 32]
             for j in range(0, 32, 4):
                 if split_bytes and j % 8 == 0 and j != 0:
                     hex_str += ' '
 
-                nibble = ''.join(bit_part[j:j + 4])
+                nibble = ''.join(map(str, bit_word[j:j + 4]))
                 hex_str += hex_map.get(nibble, '?')
 
             hex_list.append(hex_str)
@@ -105,7 +138,7 @@ class BitInstruction:
         for i in range(0, self.len, size):
             tmp_list = []
             for j in range(8):
-                tmp_list.append(''.join(self.bits[i + j * 4:i + j * 4 + 4]))
+                tmp_list.append(''.join(map(str, self.bits[i + j * 4:i + j * 4 + 4])))
             bin_list.append('_'.join(tmp_list))
 
         return bin_list[::-1]
@@ -116,135 +149,3 @@ class BitInstruction:
             if bit == '1':
                 indices.append(self.len - 1 - i)
         return indices
-
-    def set_wait(self, cycles: int):
-        self[27] = '1'
-        self[7:0] = format(cycles, '08b')
-
-    # ===================== BOOLEAN МЕТОДЫ =====================
-    # === БАЗОВЫЕ ПРИЗНАКИ ===
-
-    def is_standard(self) -> bool:
-        return self[24] == '1'
-
-    def is_service(self) -> bool:
-        return self[24] == '0'
-
-    def is_active(self) -> bool:
-        return self[2] == '1'
-
-    def is_passive(self) -> bool:
-        return self[2] == '0'
-
-    def is_wait(self) -> bool:
-        return self[27] == '1'
-
-    def is_eop(self) -> bool:
-        return self[31] == '1'
-
-    # === ОПЕРАЦИИ С ДАННЫМИ ===
-
-    def is_start_gen(self) -> bool:
-        return self[0] == '1'
-
-    def is_wrout(self) -> bool:
-        return self[1] == '1'
-
-    def is_read(self) -> bool:
-        return self[2] == '1'
-
-    def uses_wbuf_mask(self) -> bool:
-        return any(self[i] == '1' for i in range(16, 20))
-
-    def uses_xor_write(self) -> bool:
-        return self[20] == '1'
-
-    def uses_and_write(self) -> bool:
-        return self[21] == '1'
-
-    # ===================== РАБОТА С БЛОКАМИ =====================
-
-    def is_alu(self) -> bool:
-        return self[15] == '1'
-
-    def is_sp(self) -> bool:
-        return self[15] == '0'
-
-    def get_active_block(self) -> int:
-        return (
-                (int(self[12]) << 0) |
-                (int(self[13]) << 1) |
-                (int(self[14]) << 2)
-        )
-
-    # === СЛУЖЕБНЫЕ ИНСТРУКЦИИ ===
-
-    def get_type1(self) -> int:
-        return (
-                (int(self[25]) << 0) |
-                (int(self[26]) << 1)
-        )
-
-    def is_init(self) -> bool:
-        return self.is_service() and self.get_type1() == 0
-
-    def is_inc_dec(self) -> bool:
-        return self.is_service() and self.get_type1() == 1
-
-    def is_assign(self) -> bool:
-        return self.is_service() and self.get_type1() == 2
-
-    def is_jump(self) -> bool:
-        return self.is_service() and self.get_type1() == 3
-
-    # === РЕГИСТРЫ ===
-
-    def get_reg(self) -> int:
-        return (int(self[28]) << 0) | (int(self[29]) << 1)
-
-    def is_inc(self) -> bool:
-        return self.is_inc_dec() and self[30] == '1'
-
-    def is_dec(self) -> bool:
-        return self.is_inc_dec() and self[30] == '0'
-
-    # === СОСТАВНЫЕ ПРИЗНАКИ ДЛЯ WAIT ===
-
-    def is_active_standard(self) -> bool:
-        return self.is_standard() and self.is_active()
-
-    def is_passive_standard(self) -> bool:
-        return self.is_standard() and self.is_passive()
-
-    def is_long_latency_op(self) -> bool:
-        return self.is_active_standard()
-
-    def requires_gen_wait(self) -> bool:
-        return self.is_start_gen()
-
-    def requires_wrout_wait(self) -> bool:
-        return self.is_wrout()
-
-    def modifies_register(self) -> bool:
-        return self.is_init() or self.is_inc_dec() or self.is_assign()
-
-    def is_data_dependent_candidate(self) -> bool:
-        return (
-                self.is_active_standard()
-                or self.is_wrout()
-                or self.is_start_gen()
-        )
-
-    def get_wait(self):
-        if not self.is_wait():
-            return 0
-        return (
-                (int(self[0]) << 0) |
-                (int(self[1]) << 1) |
-                (int(self[2]) << 2) |
-                (int(self[3]) << 3) |
-                (int(self[4]) << 4) |
-                (int(self[5]) << 5) |
-                (int(self[6]) << 6) |
-                (int(self[7]) << 7)
-        )

@@ -144,7 +144,7 @@ const_name : IDENTIFIER ;
 
 argument: LPAREN (config_name | configuration) RPAREN ;
 
-resultexpr: output | ( LPAREN output (COMMA output)+ RPAREN );
+resultexpr: output | LPAREN output (COMMA output)+ RPAREN;
 
 sreg: R0 | R1 | R2 | R3 ;
 

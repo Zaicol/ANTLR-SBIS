@@ -1,30 +1,14 @@
 from typing import Any
 
-from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
+from models.BitCommand import BitCommand
 from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
-from models.exceptions.AssemblerError import AssemblerError
-from models.exceptions.BitValueError import BitValueError
+from models.enums.InstructionEnums import *
+from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.SemanticError import SemanticError
 from visitors.ExpressionEvaluator import ExpressionEvaluator
-
-
-def stdop_match(ctx_text):
-    match ctx_text:
-        case "a1":
-            return 0
-        case "a4":
-            return 1
-        case "a5":
-            return 2
-        case "a128d":
-            return 3
-        case "d":
-            return 4
-        case "dinv":
-            return 5
 
 
 def aluop_match(ctx_text):
@@ -44,14 +28,14 @@ def aluop_match(ctx_text):
 
 
 class CodeGenerator(ASICParserVisitor):
-    labels: dict[str, int] = {}              # Метки и их адреса
-    configs: dict[str, int] = {}             # Конфигурации и их индексы
-    defines: dict[str, Any] = {}             # Макросы и их значения
-    config_code: list[BitConfig] = []        # Список конфигураций (128 бит)
-    machine_code: list[BitInstruction] = []  # Список инструкций (32 бита)
-    for_loops: list[str] = []                # Список циклов
-    current_source_line: int = 0             # Текущая строка исходного кода
-    expr_evaluator: ExpressionEvaluator      # Объект для вычисления выражений
+    labels: dict[str, int] = {}  # Метки и их адреса
+    configs: dict[str, int] = {}  # Конфигурации и их индексы
+    defines: dict[str, Any] = {}  # Макросы и их значения
+    config_code: list[BitConfig] = []  # Список конфигураций (128 бит)
+    machine_code: list[BitCommand] = []  # Список инструкций (32 бита)
+    for_loops: list[str] = []  # Список циклов
+    current_source_line: int = 0  # Текущая строка исходного кода
+    expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
     def __init__(self, labels, configs, defines):
         self.labels = labels
@@ -68,20 +52,20 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitSreg(self, ctx: ASICParser.SregContext):
         regs = {
-            "r0": '00',
-            "r1": '01',
-            "r2": '10',
-            "r3": '11'
+            "r0": ServiceRegister.R0,
+            "r1": ServiceRegister.R1,
+            "r2": ServiceRegister.R2,
+            "r3": ServiceRegister.R3
         }
-        self.machine_code[-1][29:28] = regs[ctx.getText()]
+        self.get_current_instruction().set_service_reg(regs[ctx.getText()])
         return self.visitChildren(ctx)
 
     def visitAsignment(self, ctx: ASICParser.AsignmentContext):
-        self.machine_code[-1][26:25] = '10'
+        self.get_current_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
         return self.visitChildren(ctx)
 
     def visitArg(self, ctx: ASICParser.ArgContext):
-        self.machine_code[-1][1:0] = format(int(ctx.getText()[1]), '02b')
+        self.get_current_instruction().set_arg_num(int(ctx.getText()[1]))
         return self.visitChildren(ctx)
 
     def visitSregop(self, ctx: ASICParser.SregopContext):
@@ -92,37 +76,43 @@ class CodeGenerator(ASICParserVisitor):
         #   Циклы
         #   Задержка
         #   Конец программы
-        self.machine_code[-1][24] = '0'
+        self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
     def visitAluSpOp(self, ctx: ASICParser.AluSpOpContext):
         # Стандартная команда
-        self.machine_code[-1][24] = '1'
+        self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
         return self.visitChildren(ctx)
 
     def visitSpCopOp(self, ctx: ASICParser.SpCopOpContext):
         # Стандартная команда
-        self.machine_code[-1][24] = '1'
+        self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
+        if ctx.spcop().getText() == 'gen':
+            self.get_current_instruction().set_start_gen()
+            if ctx.resultexpr().getText() != 'v1':
+                raise AssemblerSyntaxError("gen operation can be used only with v1 register",
+                                           self.current_source_line)
+            return
         return self.visitChildren(ctx)
 
     def visitSpCopOnly(self, ctx: ASICParser.SpCopOnlyContext):
         if ctx.getText() == 'eop':
-            self.machine_code[-1][31] = '1'
+            self.get_current_instruction().set_eop()
         else:
-            self.machine_code[-1][24] = '0'
+            self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
     def visitSpcop(self, ctx: ASICParser.SpcopContext):
         ctx_text = ctx.start.text
         if ctx_text == 'gen':
             # start_gen – запуск генерации очередного пакета данных
-            self.machine_code[-1][0] = '1'
+            self.get_current_instruction().set_start_gen()
         elif ctx_text == 'wait':
             # Признак паузы: следующие cmd[7..0] тактов процес-сор не обрабатывает инструкции
-            self.machine_code[-1][27] = '1'
+            self.get_current_instruction().set_wait()
         elif ctx_text == 'jnz':
             # Условный переход
-            self.machine_code[-1][26:25] = '11'
+            self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
         return self.visitChildren(ctx)
 
     def visitLabel(self, ctx: ASICParser.LabelContext):
@@ -130,74 +120,84 @@ class CodeGenerator(ASICParserVisitor):
         if not isinstance(ctx.parentCtx, ASICParser.LblContext):
             if not ctx.getText() in self.labels:
                 raise SemanticError("Метка " + ctx.getText() + " не определена")
-            self.machine_code[-1][7:0] = format(self.labels[ctx.getText()], '08b')
+            self.get_current_instruction().set_label_addr(self.labels[ctx.getText()])
         return self.visitChildren(ctx)
 
     def visitExpression(self, ctx: ASICParser.ExpressionContext):
         value: int = self.expr_evaluator.visit_line(ctx, self.current_source_line)
-        self.machine_code[-1][7:0] = format(value, '08b')
+        self.get_current_instruction().set_expression_value(value)
         return self.expr_evaluator.visit(ctx)
 
     def visitArith(self, ctx: ASICParser.ArithContext):
         op = ctx.getChild(1).getText()
-        self.machine_code[-1][25] = '1'
+        self.get_current_instruction().set_service_operation_type(ServiceType.INC_DEC)
         if op == '--':
-            self.machine_code[-1][30] = '0'
+            self.get_current_instruction().set_decrement()
         elif op == '++':
-            self.machine_code[-1][30] = '1'
+            self.get_current_instruction().set_increment()
         return self.visitChildren(ctx)
 
-    def visitOutput(self, ctx: ASICParser.OutputContext):
-        ctx_text = ctx.start.text
-        bit_index = 0
-        match ctx_text:
-            case "v1":
-                bit_index = 16
-            case "v2":
-                bit_index = 17
-            case "v3":
-                bit_index = 18
-            case "v4":
-                bit_index = 19
-            case "v2^":
-                bit_index = 20
-            case "v4&":
-                bit_index = 21
-            case "cmp":
-                bit_index = 3
-            case _:
-                raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
-        self.machine_code[-1][bit_index] = '1'
-        return self.visitChildren(ctx)
+    def visitResultexpr(self, ctx: ASICParser.ResultexprContext):
+        outputs: list[ASICParser.OutputContext] = ctx.output()
+        output_places: list[OutputPlaces] = []
+        for output in outputs:
+            place = self.visit(output)
+            if place is not None:
+                output_places.append(place)
+        self.get_current_instruction().set_output(output_places)
+        return
+
+    def visitOutput(self, ctx: ASICParser.OutputContext) -> OutputPlaces | None:
+        ctx_text = ctx.getText()
+        try:
+            return OutputPlaces[ctx_text.upper().replace("^", "N").replace("&", "M")]
+        except KeyError:
+            match ctx_text:
+                case "cmp":
+                    self.get_current_instruction().set_cmp()
+                    return None
+                case _:
+                    raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
 
     def visitResultout(self, ctx: ASICParser.ResultoutContext):
-        self.machine_code[-1][1] = '1'
+        self.get_current_instruction().set_wrout()
         return
 
     def visitStdop(self, ctx: ASICParser.StdopContext):
         ctx_text = ctx.start.text
-        self.machine_code[-1][14:12] = format(stdop_match(ctx_text), '03b')
+        try:
+            sp_type = SPType[ctx_text.upper()]
+        except KeyError:
+            raise ValueError(f"Неподдерживаемый spop: {ctx_text}")
+        self.get_current_instruction().set_sp_op(sp_type)
         return self.visitChildren(ctx)
 
     def visitAluop(self, ctx: ASICParser.AluopContext):
         ctx_text = ctx.start.text
-        self.machine_code[-1][14:12] = format(aluop_match(ctx_text), '03b')
+        try:
+            alu_type = ALUType[ctx_text.upper()]
+        except KeyError:
+            raise ValueError(f"Неподдерживаемый aluop: {ctx_text}")
+        self.get_current_instruction().set_alu_op(alu_type)
         return self.visitChildren(ctx)
 
     def visitConfig_name(self, ctx: ASICParser.Config_nameContext):
         if not isinstance(ctx.parentCtx, ASICParser.Config_defContext):
             if not ctx.getText() in self.configs:
                 raise SemanticError("Конфигурация " + ctx.getText() + " не определена")
-            self.machine_code[-1][9:4] = format(self.configs[ctx.getText()], '06b')
+            self.get_current_instruction().set_config_addr(self.configs[ctx.getText()])
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
         self.current_source_line += 1
-        self.machine_code.append(BitInstruction(source_line=self.current_source_line))
+        self.machine_code.append(BitCommand(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
     def visitDefinition(self, ctx: ASICParser.DefinitionContext):
         self.current_source_line += 1
+        return self.visitChildren(ctx)
+
+    def visitConfig_def(self, ctx: ASICParser.Config_defContext):
         self.config_code.append(BitConfig(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
@@ -216,21 +216,21 @@ class CodeGenerator(ASICParserVisitor):
         return
 
     def visitConf_d(self, ctx: ASICParser.Conf_dContext):
-        shift_value = None
-        significant_count = 32
+        shift_value = None  # sh_R1-sh_R4
+        significant_count = 32  # tr_R1-tr_R4
 
         # Получаем название входа: v1, v1h, v2, v3, v4, r0, rev(r0)
         if ctx.vreg():
-            input_name = ctx.vreg().getText()
+            reg_name = ctx.vreg().getText()
         elif ctx.vreg_r():
-            input_name = ctx.vreg_r().R0().getText()
+            reg_name = ctx.vreg_r().R0().getText()
             significant_count = 64
         else:
             raise Exception("Unknown vreg")
 
         # Если вход - rev(r0), то устанавливается соответствующий флаг
         if ctx.vreg_r() and ctx.vreg_r().REV():
-            self.config_code[-1][120] = '1'
+            self.config_code[-1].set_rev_reg()
 
         if len(ctx.expression()) == 2:
             # input{significant_count} << shift
@@ -244,26 +244,27 @@ class CodeGenerator(ASICParserVisitor):
             significant_count = int(ctx.expression()[0].getText())
 
         # Вызываем метод BitConfig.set_input, который устанавливает нужные значения в подходящих позициях
-        self.config_code[-1].set_input(input_name, shift_value, significant_count)
+        self.config_code[-1].set_input(reg_name, shift_value, significant_count)
         return
 
     def visitRev_configuration(self, ctx: ASICParser.Rev_configurationContext):
-        self.config_code[-1][121] = '1'
+        self.config_code[-1].set_rev_txt()
         return self.visitChildren(ctx)
 
     def visitForloop(self, ctx: ASICParser.ForloopContext):
         # TODO: Реализовать
         return
 
-    def is_wait_next(self, index: int) -> bool:
-        if len(self.machine_code) > index + 1:
-            return False
-        return self.machine_code[index].is_wait()
-
     def insert_wait_instructions(self):
-        def make_wait_instruction(cycles: int, source_line: int) -> BitInstruction:
-            new_instruction = BitInstruction(source_line=source_line)
-            new_instruction.set_wait(cycles)
+        def is_wait_next(index: int) -> bool:
+            if len(self.machine_code) > index + 1:
+                return False
+            return self.machine_code[index].is_wait()
+
+        def make_wait_instruction(cycles: int, source_line: int) -> BitCommand:
+            new_instruction = BitCommand(source_line=source_line)
+            new_instruction.set_wait()
+            new_instruction.set_expression_value(cycles)
             return new_instruction
 
         result = []
@@ -273,15 +274,15 @@ class CodeGenerator(ASICParserVisitor):
             result.append(instruction)
 
             if instruction.is_start_gen():
-                if self.is_wait_next(i):
-                    self.machine_code[i].set_wait(max(self.machine_code[i].get_wait(), 4))
+                if is_wait_next(i):
+                    self.machine_code[i].set_expression_value(max(self.machine_code[i].get_wait(), 4))
                 else:
                     result.append(make_wait_instruction(4, instruction.get_source_line()))
                 continue
 
             if instruction.is_wrout():
-                if self.is_wait_next(i):
-                    self.machine_code[i].set_wait(max(self.machine_code[i].get_wait(), 5))
+                if is_wait_next(i):
+                    self.machine_code[i].set_expression_value(max(self.machine_code[i].get_wait(), 5))
                 else:
                     result.append(make_wait_instruction(5, instruction.get_source_line()))
                 continue
@@ -348,3 +349,6 @@ class CodeGenerator(ASICParserVisitor):
     def get_full_code_binary_str(self, prefix=False, show_source_line=False) -> str:
         code = self.get_full_code_binary(prefix, show_source_line)
         return "\n".join(code)
+
+    def get_current_instruction(self) -> BitCommand:
+        return self.machine_code[-1]
