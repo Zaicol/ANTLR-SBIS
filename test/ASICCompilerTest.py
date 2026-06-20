@@ -1,18 +1,14 @@
 import unittest
 import os
 import sys
-from antlr4 import *
-from generated.ASICLexer import ASICLexer
-from generated.ASICParser import ASICParser
+
+from ASICCompiler import ASICCompiler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
-from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.SemanticError import SemanticError
-from visitors.CodeGenerator import CodeGenerator
-from visitors.LabelCollector import LabelCollector
 
 
-class ANTLRCompilerTest(unittest.TestCase):
+class ASICCompilerTest(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = "test_files"
@@ -24,39 +20,21 @@ class ANTLRCompilerTest(unittest.TestCase):
         Вспомогательный метод
         Возвращает: (labels, configs, code_generator, has_errors)
         """
+
         filepath = os.path.join(self.test_dir, self.test_data_dir, filename)
 
         if not os.path.exists(filepath):
             self.fail(f"Файл не найден: {filepath}")
 
-        input_stream = FileStream(filepath, encoding="utf-8")
+        compiler: ASICCompiler = ASICCompiler(filepath)
 
-        lexer = ASICLexer(input_stream)
-        token_stream = CommonTokenStream(lexer)
-        parser = ASICParser(token_stream)
+        compiler.assemble()
+        labels = compiler.labels
+        configs = compiler.configs
+        code_generator = compiler.code_generator
+        has_errors = compiler.has_errors
 
-        parser.removeErrorListeners()
-        error_listener = AssemblerErrorListener()
-        parser.addErrorListener(error_listener)
-
-        tree = parser.prog()
-        has_errors = parser.getNumberOfSyntaxErrors() > 0
-
-        if has_errors:
-            return None, None, None, True
-
-        # Cбор меток и конфигураций
-        label_collector = LabelCollector()
-        label_collector.visit(tree)
-        labels = label_collector.get_labels()
-        configs = label_collector.get_configs()
-
-        # Генерация машинного кода
-        code_generator = CodeGenerator(labels, configs)
-        code_generator.visit(tree)
-        code_generator.insert_wait_instructions()
-
-        return labels, configs, code_generator, False
+        return labels, configs, code_generator, has_errors
 
     def get_expected_data(self, filename):
         filepath = os.path.join(self.test_dir, self.expected_data_dir, filename)
@@ -212,7 +190,7 @@ class ANTLRCompilerTest(unittest.TestCase):
 def run_tests():
     """Запуск всех тестов"""
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(ANTLRCompilerTest)
+    suite = loader.loadTestsFromTestCase(ASICCompilerTest)
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
