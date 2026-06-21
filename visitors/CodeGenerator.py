@@ -142,6 +142,8 @@ class CodeGenerator(ASICParserVisitor):
             place = self.visit(output)
             if place is not None:
                 output_places.append(place)
+        if len(output_places) > 5:
+            raise AssemblerSyntaxError(f"Too many outputs ({len(output_places)} > 5)", self.current_source_line)
         self.get_current_instruction().set_output(output_places)
         return
 
@@ -150,12 +152,7 @@ class CodeGenerator(ASICParserVisitor):
         try:
             return OutputPlaces[ctx_text.upper().replace("^", "N").replace("&", "M")]
         except KeyError:
-            match ctx_text:
-                case "cmp":
-                    self.get_current_instruction().set_cmp()
-                    return None
-                case _:
-                    raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
+            raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
 
     def visitResultout(self, ctx: ASICParser.ResultoutContext):
         self.get_current_instruction().set_wrout()

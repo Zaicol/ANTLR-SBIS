@@ -28,6 +28,7 @@ class ALUType(Enum):
 
 class OutputPlaces(Enum):
     # Биты
+    CMP = 0
     V1 = 1
     V2 = 2
     V3 = 4

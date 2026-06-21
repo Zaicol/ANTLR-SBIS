@@ -72,6 +72,8 @@ class BitCommand(BitInstruction):
     def set_output(self, output_list: list[OutputPlaces]):
         output = 0
         for place in output_list:
+            if place == OutputPlaces.CMP:
+                self.set_cmp()     # бит cmp находится в другом месте инструкции
             output |= place.value  # Побитово собираем все места, куда записывать вывод (v1-v4, v2^, v4&)
         self[self.OUTPUT] = output
 
