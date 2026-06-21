@@ -26,11 +26,13 @@ class FirstPassVisitor(ASICParserVisitor):
         config_name = ctx.config_name().getText()
         self.configs[config_name] = self.config_index
         self.config_index += 1
+        self.source_line += 1
         return self.visitChildren(ctx)
 
     def visitDefine_def(self, ctx: ASICParser.Define_defContext):
         define_name = ctx.define_name().getText()
         self.defines[define_name] = ctx.expression().getText()
+        self.source_line += 1
         return self.visitChildren(ctx)
 
     def get_labels(self) -> dict[str, Label]:

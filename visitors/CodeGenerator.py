@@ -1,3 +1,4 @@
+from bisect import bisect_left
 from typing import Any
 
 from generated.ASICParser import ASICParser
@@ -308,16 +309,33 @@ class CodeGenerator(ASICParserVisitor):
     def update_labels(self):
         source_line_to_instruction_map = self.get_source_line_to_instruction_map()
         for label in self.labels.values():
-            label.address = source_line_to_instruction_map[label.source_line]
+            label.address = self.get_closest_line(source_line_to_instruction_map, label.source_line)
 
         for instruction in self.machine_code:
             if instruction.is_jump():
                 instruction.set_expression_value(self.labels[instruction.get_jump_label().name].address)
 
-    def get_source_line_to_instruction_map(self):
+    def get_closest_line(self, source_line_map: dict[int, int], source_line: int) -> int:
+        if source_line in source_line_map:
+            return source_line_map[source_line]
+
+        keys = sorted(source_line_map.keys())
+        i = bisect_left(keys, source_line)
+
+        closest_next_line = keys[i] if i < len(keys) else None
+
+        if closest_next_line is None:
+            raise AssemblerSyntaxError(f"Can't find closest instruction for source line: {source_line}", source_line)
+
+        return source_line_map[closest_next_line]
+
+
+
+    def get_source_line_to_instruction_map(self) -> dict[int, int]:
         result = {}
         for i, instruction in enumerate(self.machine_code):
             sl = instruction.get_source_line()
+            print(sl)
             if sl in result:
                 result[sl] = min(result[sl], i)
             else:
