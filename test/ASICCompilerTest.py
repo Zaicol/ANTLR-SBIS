@@ -5,7 +5,7 @@ import sys
 from ASICAssembler import ASICAssembler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
-from models.exceptions.SemanticError import SemanticError
+from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
 from utils.tree import generate_graph_tree
 
 
@@ -166,7 +166,7 @@ class ASICCompilerTest(unittest.TestCase):
         test_dir = "syntax_errors"
         test_cases = [
             ("test_error_unknown_operator.txt", AssemblerSyntaxError),
-            ("test_error_no_config.txt", SemanticError),
+            ("test_error_no_config.txt", AssemblerUndefinedError),
             ("test_error_constant.txt", BitValueError),
         ]
 

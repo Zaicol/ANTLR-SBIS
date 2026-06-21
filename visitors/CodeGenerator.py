@@ -10,7 +10,7 @@ from models.Constant import Constant
 from models.Label import Label
 from models.enums.InstructionEnums import *
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
-from models.exceptions.SemanticError import SemanticError
+from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
 from visitors.ExpressionEvaluator import ExpressionEvaluator
 
 
@@ -113,7 +113,7 @@ class CodeGenerator(ASICParserVisitor):
         label_name = ctx.label().getText()
         label = self.labels.get(label_name, None)
         if label is None:
-            raise SemanticError("Метка " + label_name + " не определена")
+            raise AssemblerUndefinedError(label_name, line=self.current_source_line)
         self.get_current_instruction().set_label_addr(label.address)
         self.get_current_instruction().set_jump_label(label)
         return
@@ -178,9 +178,10 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitConfig_name(self, ctx: ASICParser.Config_nameContext):
         if not isinstance(ctx.parentCtx, ASICParser.Config_defContext):
-            if not ctx.getText() in self.configs:
-                raise SemanticError("Конфигурация " + ctx.getText() + " не определена")
-            self.get_current_instruction().set_config_addr(self.configs[ctx.getText()])
+            config_name = ctx.getText()
+            if config_name not in self.configs:
+                raise AssemblerUndefinedError(config_name, line=self.current_source_line)
+            self.get_current_instruction().set_config_addr(self.configs[config_name])
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
@@ -203,10 +204,10 @@ class CodeGenerator(ASICParserVisitor):
         return constant
 
     def visitConst_name(self, ctx: ASICParser.Const_nameContext) -> Constant:
-        name = ctx.getText()
-        if name not in self.constants:
-            raise SemanticError("Constant " + name + " not defined")
-        constant: Constant = self.constants[name]
+        const_name = ctx.getText()
+        if const_name not in self.constants:
+            raise AssemblerUndefinedError(const_name, line=self.current_source_line)
+        constant: Constant = self.constants[const_name]
         return constant
 
     def visitConf_c(self, ctx: ASICParser.Conf_cContext):
