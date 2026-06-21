@@ -5,6 +5,7 @@ from generated.ASICParserVisitor import ASICParserVisitor
 from models.BitCommand import BitCommand
 from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
+from models.Label import Label
 from models.enums.InstructionEnums import *
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.SemanticError import SemanticError
@@ -28,7 +29,7 @@ def aluop_match(ctx_text):
 
 
 class CodeGenerator(ASICParserVisitor):
-    labels: dict[str, int] = {}  # Метки и их адреса
+    labels: dict[str, Label] = {}  # Метки и их адреса
     configs: dict[str, int] = {}  # Конфигурации и их индексы
     defines: dict[str, Any] = {}  # Макросы и их значения
     config_code: list[BitConfig] = []  # Список конфигураций (128 бит)
@@ -37,7 +38,7 @@ class CodeGenerator(ASICParserVisitor):
     current_source_line: int = 0  # Текущая строка исходного кода
     expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
-    def __init__(self, labels, configs, defines):
+    def __init__(self, labels: dict[str, Label], configs: dict[str, int], defines: dict[str, Any]):
         self.labels = labels
         self.configs = configs
         self.defines = defines
@@ -58,7 +59,7 @@ class CodeGenerator(ASICParserVisitor):
             "r3": ServiceRegister.R3
         }
         self.get_current_instruction().set_service_reg(regs[ctx.getText()])
-        return self.visitChildren(ctx)
+        return regs[ctx.getText()]
 
     def visitAsignment(self, ctx: ASICParser.AsignmentContext):
         self.get_current_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
@@ -114,13 +115,16 @@ class CodeGenerator(ASICParserVisitor):
             self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
         return self.visitChildren(ctx)
 
-    def visitLabel(self, ctx: ASICParser.LabelContext):
-        # Отделяем определение метки от её использования
-        if not isinstance(ctx.parentCtx, ASICParser.LblContext):
-            if not ctx.getText() in self.labels:
-                raise SemanticError("Метка " + ctx.getText() + " не определена")
-            self.get_current_instruction().set_label_addr(self.labels[ctx.getText()])
-        return self.visitChildren(ctx)
+    def visitJump(self, ctx: ASICParser.JumpContext):
+        self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
+        self.visit(ctx.sreg())
+        label_name = ctx.label().getText()
+        label = self.labels.get(label_name, None)
+        if label is None:
+            raise SemanticError("Метка " + label_name + " не определена")
+        self.get_current_instruction().set_label_addr(label.address)
+        self.get_current_instruction().set_jump_label(label)
+        return
 
     def visitExpression(self, ctx: ASICParser.ExpressionContext):
         value: int = self.expr_evaluator.visit_line(ctx, self.current_source_line)
@@ -270,6 +274,7 @@ class CodeGenerator(ASICParserVisitor):
         last_active_index = -1
 
         for i, instruction in enumerate(self.machine_code):
+
             result.append(instruction)
 
             if instruction.is_start_gen():
@@ -298,6 +303,26 @@ class CodeGenerator(ASICParserVisitor):
                 continue
 
         self.machine_code = result
+        self.update_labels()
+
+    def update_labels(self):
+        source_line_to_instruction_map = self.get_source_line_to_instruction_map()
+        for label in self.labels.values():
+            label.address = source_line_to_instruction_map[label.source_line]
+
+        for instruction in self.machine_code:
+            if instruction.is_jump():
+                instruction.set_expression_value(self.labels[instruction.get_jump_label().name].address)
+
+    def get_source_line_to_instruction_map(self):
+        result = {}
+        for i, instruction in enumerate(self.machine_code):
+            sl = instruction.get_source_line()
+            if sl in result:
+                result[sl] = min(result[sl], i)
+            else:
+                result[sl] = i
+        return result
 
     # ====== Методы для вывода кода ======
 

@@ -1,3 +1,4 @@
+from models.Label import Label
 from models.enums.InstructionEnums import *
 from models.BitInstruction import BitInstruction
 
@@ -38,6 +39,8 @@ class BitCommand(BitInstruction):
 
     def __init__(self, source_line: int = 0):
         super().__init__(source_line=source_line)
+        self.label: Label | None = None
+        self.jump_label: Label | None = None
 
     def set_start_gen(self):
         self[self.START_GEN] = True
@@ -127,6 +130,9 @@ class BitCommand(BitInstruction):
     def is_eop(self) -> bool:
         return self[self.EOP] is True
 
+    def is_jump(self) -> bool:
+        return self[self.SERVICE_TYPE] == ServiceType.JNZ.value
+
     # === ОПЕРАЦИИ С ДАННЫМИ ===
 
     def is_start_gen(self) -> bool:
@@ -144,3 +150,18 @@ class BitCommand(BitInstruction):
         if not self.is_wait():
             return 0
         return self[self.EXPRESSION_VALUE]
+
+    def set_label(self, label: Label):
+        self.label = label
+
+    def get_label(self) -> Label | None:
+        return self.label
+
+    def set_jump_label(self, label: Label):
+        self.jump_label = label
+
+    def get_jump_label(self) -> Label | None:
+        return self.jump_label
+
+    def is_labeled(self) -> bool:
+        return self.label is not None

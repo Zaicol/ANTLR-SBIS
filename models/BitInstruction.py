@@ -1,6 +1,3 @@
-from models.enums.InstructionEnums import *
-
-
 class BitInstruction:
     len: int = 32
 
@@ -49,7 +46,7 @@ class BitInstruction:
         else:
             raise TypeError("Index must be an integer or slice")
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> int:
         if isinstance(key, int):
             # Чтение одного бита: obj[5]
             if key < 0 or key > self.len - 1:
@@ -67,13 +64,13 @@ class BitInstruction:
         else:
             raise TypeError("Index must be an integer or slice")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ''.join(str(self.bits))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"BitInstruction({self.source_line}: {self.__str__()})"
 
-    def get_str(self, key: int | slice):
+    def get_str(self, key: int | slice) -> str:
         if isinstance(key, int):
             # Чтение одного бита: obj[5]
             if key < 0 or key > self.len - 1:

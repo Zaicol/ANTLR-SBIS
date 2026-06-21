@@ -18,7 +18,7 @@ class SPType(Enum):
 
 
 class ALUType(Enum):
-    NOTHING = 0
+    ID = 0
     AND = 1
     OR = 2
     XOR = 3

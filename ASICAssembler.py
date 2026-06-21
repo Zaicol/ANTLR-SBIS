@@ -3,6 +3,7 @@ from antlr4.tree.Tree import ParseTree
 
 from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
+from models.Label import Label
 from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
 from visitors.CodeGenerator import CodeGenerator
 from visitors.FirstPassVisitor import FirstPassVisitor
@@ -14,7 +15,7 @@ class ASICAssembler:
         self.source_file = source_file
         self.tree = None
         self.parser = None
-        self.labels = {}
+        self.labels: dict[str, Label] = {}
         self.configs = {}
         self.defines = {}
         self.code_generator = None
