@@ -10,17 +10,17 @@ from models.exceptions.BitValueError import BitValueError
 
 class ExpressionEvaluator(ASICParserVisitor):
     defines: dict[str, Any]
-    line: int
+    source_line: int
 
     def __init__(self, defines, line):
         self.defines = defines
-        self.line = line
+        self.source_line = line
 
-    def visit_line(self, ctx, line):
-        self.line = line
+    def visit_line(self, ctx, line) -> int:
+        self.source_line = line
         res = super().visit(ctx)
         if not (0 <= res <= 255):
-            raise BitValueError(f"Константа {res} не помещается в 8 бит (допустимый диапазон: 0–255)")
+            raise BitValueError(f"Expression value {res} out of range [0, 255]", line)
 
         return res
 
@@ -46,10 +46,10 @@ class ExpressionEvaluator(ASICParserVisitor):
         if oper == '~':
             return ~value
 
-        if oper.lower() == 'neg':
-            return int(not value)
+        if oper == '!':
+            return not value
 
-        raise AssemblerSyntaxError(f"Unknown unary operator: {oper}", self.line)
+        raise AssemblerSyntaxError(f"Unknown unary operator: {oper}", self.source_line)
 
     def visitMultiplicative_expression(self, ctx: ASICParser.Multiplicative_expressionContext):
         result = self.visit(ctx.unary_expression(0))
@@ -70,7 +70,7 @@ class ExpressionEvaluator(ASICParserVisitor):
             else:
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.line
+                    self.source_line
                 )
 
         return result
@@ -91,7 +91,7 @@ class ExpressionEvaluator(ASICParserVisitor):
             else:
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.line
+                    self.source_line
                 )
 
         return result
@@ -118,7 +118,7 @@ class ExpressionEvaluator(ASICParserVisitor):
             else:
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.line
+                    self.source_line
                 )
 
         return result
@@ -139,7 +139,7 @@ class ExpressionEvaluator(ASICParserVisitor):
             else:
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.line
+                    self.source_line
                 )
 
         return result
@@ -194,11 +194,11 @@ class ExpressionEvaluator(ASICParserVisitor):
 
     def visitDefine_name(self, ctx: ASICParser.Define_nameContext):
         if not ctx.getText() in self.defines:
-            raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.line)
+            raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line)
         try:
             return int(self.defines[ctx.getText()])
         except ValueError:
-            raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.line)
+            raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.source_line)
 
     def visitConstant(self, ctx: ASICParser.ConstantContext):
         token = ctx.getChild(0).getSymbol()
@@ -237,7 +237,7 @@ class ExpressionEvaluator(ASICParserVisitor):
             value = int(num_part, 10)
 
         else:
-            raise AssemblerError(f"Неизвестный тип константы: {text}")
+            raise AssemblerError(f"Unknown constant: {text}")
 
         return value
 

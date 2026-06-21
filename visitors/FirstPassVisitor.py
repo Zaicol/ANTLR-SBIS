@@ -8,6 +8,7 @@ class FirstPassVisitor(ASICParserVisitor):
         self.labels: dict[str, Label] = {}       # Словарь для хранения меток и их адресов
         self.configs = {}      # Словарь для хранения конфигураций и их индексов
         self.defines = {}      # Словарь для хранения макросов
+        self.constant_contexts: dict[str, ASICParser.Const_exprContext] = {}    # Словарь для хранения констант
         self.source_line = 0   # Текущая строка
         self.config_index = 0  # Текущий индекс конфигурации
 
@@ -28,6 +29,11 @@ class FirstPassVisitor(ASICParserVisitor):
         self.defines[define_name] = ctx.expression().getText()
         return self.visitChildren(ctx)
 
+    def visitConst_def(self, ctx:ASICParser.Const_defContext):
+        const_name = ctx.const_name().getText()
+        self.constant_contexts[const_name] = ctx.const_expr()
+        return self.visitChildren(ctx)
+
     def visitLine(self, ctx: ASICParser.LineContext):
         self.source_line += 1
         return self.visitChildren(ctx)
@@ -40,3 +46,6 @@ class FirstPassVisitor(ASICParserVisitor):
 
     def get_defines(self) -> dict[str, str]:
         return self.defines
+
+    def get_constant_contexts(self) -> dict[str, ASICParser.Const_exprContext]:
+        return self.constant_contexts

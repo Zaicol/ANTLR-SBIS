@@ -16,8 +16,9 @@ class ASICAssembler:
         self.tree = None
         self.parser = None
         self.labels: dict[str, Label] = {}
-        self.configs = {}
-        self.defines = {}
+        self.configs: dict[str, int] = {}
+        self.defines: dict[str, str] = {}
+        self.constant_contexts: dict[str, ASICParser.Const_exprContext] = {}
         self.code_generator = None
 
     def parse(self) -> ParseTree:
@@ -50,6 +51,7 @@ class ASICAssembler:
         self.labels = label_collector.get_labels()
         self.configs = label_collector.get_configs()
         self.defines = label_collector.get_defines()
+        self.constant_contexts = label_collector.get_constant_contexts()
 
         return label_collector
 
@@ -58,7 +60,8 @@ class ASICAssembler:
         self.code_generator = CodeGenerator(
             self.labels,
             self.configs,
-            self.defines
+            self.defines,
+            self.constant_contexts
         )
         self.code_generator.visit(self.tree)
         self.code_generator.insert_wait_instructions()

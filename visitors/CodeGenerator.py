@@ -6,6 +6,7 @@ from generated.ASICParserVisitor import ASICParserVisitor
 from models.BitCommand import BitCommand
 from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
+from models.Constant import Constant
 from models.Label import Label
 from models.enums.InstructionEnums import *
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
@@ -17,21 +18,27 @@ class CodeGenerator(ASICParserVisitor):
     labels: dict[str, Label] = {}  # Метки и их адреса
     configs: dict[str, int] = {}  # Конфигурации и их индексы
     defines: dict[str, Any] = {}  # Макросы и их значения
+    constants: dict[str, Constant] = {}
     config_code: list[BitConfig] = []  # Список конфигураций (128 бит)
     machine_code: list[BitCommand] = []  # Список инструкций (32 бита)
     for_loops: list[str] = []  # Список циклов
     current_source_line: int = 0  # Текущая строка исходного кода
     expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
-    def __init__(self, labels: dict[str, Label], configs: dict[str, int], defines: dict[str, Any]):
+    def __init__(self, labels: dict[str, Label], configs: dict[str, int],
+                 defines: dict[str, Any], constant_contexts: dict[str, ASICParser.Const_exprContext]):
+        self.expr_evaluator = ExpressionEvaluator(self.defines, self.current_source_line)
+
         self.labels = labels
         self.configs = configs
         self.defines = defines
+        for name, const in constant_contexts.items():
+            self.constants[name] = self.visit(const)
+
         self.config_code = []
         self.machine_code = []
         self.for_loops = []
         self.current_source_line = 0
-        self.expr_evaluator = ExpressionEvaluator(self.defines, self.current_source_line)
 
     def visitDefine_def(self, ctx: ASICParser.Define_defContext):
         return
@@ -188,18 +195,28 @@ class CodeGenerator(ASICParserVisitor):
         self.config_code.append(BitConfig(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
-    def visitConst_expr(self, ctx: ASICParser.Const_exprContext):
-        return self.visitChildren(ctx)
+    def visitConst_expr(self, ctx: ASICParser.Const_exprContext) -> Constant:
+        const_addr = self.calc_expr(ctx.expression()[0])
+        constant = Constant(const_addr)
+        if ctx.LSHIFT():
+            constant.set_shift(self.calc_expr(ctx.expression()[1]))
+        return constant
+
+    def visitConst_name(self, ctx: ASICParser.Const_nameContext) -> Constant:
+        name = ctx.getText()
+        if name not in self.constants:
+            raise SemanticError("Constant " + name + " not defined")
+        constant: Constant = self.constants[name]
+        return constant
 
     def visitConf_c(self, ctx: ASICParser.Conf_cContext):
-        const_expr_ctx = ctx.const_expr()
-        if const_expr_ctx:
-            const_index = const_expr_ctx.expression()[0].getText()
-            shift_value = None
-            if const_expr_ctx.LSHIFT():
-                shift_value = int(const_expr_ctx.expression()[1].getText())
-            self.config_code[-1].set_constant(int(const_index), shift_value)
-
+        if ctx.const_expr():
+            constant: Constant = self.visit(ctx.const_expr())
+        elif ctx.const_name():
+            constant: Constant = self.visit(ctx.const_name())
+        else:
+            raise AssemblerSyntaxError("Unknown conf_c", self.current_source_line)
+        self.config_code[-1].set_constant(constant.get_address(), constant.get_shift())
         return
 
     def visitConf_d(self, ctx: ASICParser.Conf_dContext):
@@ -379,3 +396,6 @@ class CodeGenerator(ASICParserVisitor):
 
     def get_current_instruction(self) -> BitCommand:
         return self.machine_code[-1]
+
+    def calc_expr(self, ctx: ASICParser.ExpressionContext) -> int:
+        return self.expr_evaluator.visit_line(ctx, self.current_source_line)
