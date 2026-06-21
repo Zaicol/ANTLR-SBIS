@@ -13,22 +13,6 @@ from models.exceptions.SemanticError import SemanticError
 from visitors.ExpressionEvaluator import ExpressionEvaluator
 
 
-def aluop_match(ctx_text):
-    # (0 – A; 1 – A and B; 2 – A or B; 3 – A xor B; 4 – not A; 5 – rev(A))
-    match ctx_text:
-        case "and":
-            return 1
-        case "or":
-            return 2
-        case "xor":
-            return 3
-        case "not":
-            return 4
-        case "rev":
-            return 5
-    return 0
-
-
 class CodeGenerator(ASICParserVisitor):
     labels: dict[str, Label] = {}  # Метки и их адреса
     configs: dict[str, int] = {}  # Конфигурации и их индексы
@@ -193,11 +177,10 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.current_source_line += 1
         self.machine_code.append(BitCommand(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
-    def visitDefinition(self, ctx: ASICParser.DefinitionContext):
+    def visitLine(self, ctx: ASICParser.LineContext):
         self.current_source_line += 1
         return self.visitChildren(ctx)
 
@@ -227,14 +210,13 @@ class CodeGenerator(ASICParserVisitor):
         if ctx.vreg():
             reg_name = ctx.vreg().getText()
         elif ctx.vreg_r():
+            if ctx.vreg_r().REV():
+                # Если вход - rev(r0), то устанавливается соответствующий флаг
+                self.config_code[-1].set_rev_reg()
             reg_name = ctx.vreg_r().R0().getText()
             significant_count = 64
         else:
             raise Exception("Unknown vreg")
-
-        # Если вход - rev(r0), то устанавливается соответствующий флаг
-        if ctx.vreg_r() and ctx.vreg_r().REV():
-            self.config_code[-1].set_rev_reg()
 
         if len(ctx.expression()) == 2:
             # input{significant_count} << shift
@@ -253,6 +235,12 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitRev_configuration(self, ctx: ASICParser.Rev_configurationContext):
         self.config_code[-1].set_rev_txt()
+        return self.visitChildren(ctx)
+
+    def visitArgument(self, ctx:ASICParser.ArgumentContext):
+        if ctx.configuration():
+            self.config_code.append(BitConfig(source_line=self.current_source_line))
+            self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
     def visitForloop(self, ctx: ASICParser.ForloopContext):
@@ -329,13 +317,10 @@ class CodeGenerator(ASICParserVisitor):
 
         return source_line_map[closest_next_line]
 
-
-
     def get_source_line_to_instruction_map(self) -> dict[int, int]:
         result = {}
         for i, instruction in enumerate(self.machine_code):
             sl = instruction.get_source_line()
-            print(sl)
             if sl in result:
                 result[sl] = min(result[sl], i)
             else:

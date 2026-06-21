@@ -1,7 +1,6 @@
 config conf_0 c[0] + c[0];
 config conf_1 rev(c[0]);
-config conf_2 c[1] << 32;
 cmp = a1(conf_0);
 cmp = a4(conf_1);
-cmp = d(conf_2);
+cmp = d(c[1] << 32);
 eop;

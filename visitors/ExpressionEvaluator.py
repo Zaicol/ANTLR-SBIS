@@ -19,7 +19,6 @@ class ExpressionEvaluator(ASICParserVisitor):
     def visit_line(self, ctx, line):
         self.line = line
         res = super().visit(ctx)
-        print("result:", res)
         if not (0 <= res <= 255):
             raise BitValueError(f"Константа {res} не помещается в 8 бит (допустимый диапазон: 0–255)")
 

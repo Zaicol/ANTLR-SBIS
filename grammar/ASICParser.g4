@@ -23,7 +23,8 @@ const_def: CONST const_name const_expr ;
 constant: HEXADECIMAL | DECIMAL | BINARY | OCTAL;
 
 statement
-   : lbl | (lbl? (instruction | (instruction COMMA instruction) | (instruction COMMA instruction COMMA instruction)))
+   : (lbl? (instruction | (instruction COMMA instruction) | (instruction COMMA instruction COMMA instruction)))
+   | lbl
    ;
 
 instruction
@@ -142,7 +143,7 @@ config_name : IDENTIFIER ;
 
 const_name : IDENTIFIER ;
 
-argument: LPAREN (config_name | configuration) RPAREN ;
+argument: LPAREN (config_name | configuration | rev_configuration) RPAREN ;
 
 resultexpr: output | LPAREN output (COMMA output)+ RPAREN;
 

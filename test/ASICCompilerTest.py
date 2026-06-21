@@ -6,6 +6,7 @@ from ASICAssembler import ASICAssembler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.SemanticError import SemanticError
+from utils.tree import generate_graph_tree
 
 
 class ASICCompilerTest(unittest.TestCase):
@@ -92,11 +93,9 @@ class ASICCompilerTest(unittest.TestCase):
         configs = assembler.configs
 
         self.assertFalse(assembler.has_errors)
-        self.assertEqual(len(configs), 3, "Получено не 3 конфигурации")
+        self.assertEqual(len(configs), 2, "Получено не 2 конфигурации")
         self.assertIn('conf_0', configs, "Должна присутствовать конфигурация conf_0")
         self.assertIn('conf_1', configs, "Должна присутствовать конфигурация conf_1")
-        self.assertIn('conf_2', configs, "Должна присутствовать конфигурация conf_2")
-
         config_indices = list(configs.values())
         self.assertEqual(len(config_indices), len(set(config_indices)),
                          f"Конфигурации имеют одинаковый индекс: {config_indices}")
