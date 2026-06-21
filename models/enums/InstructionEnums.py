@@ -35,6 +35,7 @@ class OutputPlaces(Enum):
     V2N = 16
     V4M = 32
 
+
 class InstructionType(Enum):
     SERVICE = 0
     STANDARD = 1

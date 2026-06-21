@@ -16,11 +16,12 @@ class ExpressionEvaluator(ASICParserVisitor):
         self.defines = defines
         self.source_line = line
 
-    def visit_line(self, ctx, line) -> int:
+    def visit_line(self, ctx, line, max_size_in_bits: int = 8) -> int:
         self.source_line = line
         res = super().visit(ctx)
-        if not (0 <= res <= 255):
-            raise BitValueError(f"Expression value {res} out of range [0, 255]", line)
+        max_size = (2 ** max_size_in_bits) - 1
+        if not (0 <= res <= max_size):
+            raise BitValueError(f"Expression value {res} out of range [0, {max_size}]", line)
 
         return res
 

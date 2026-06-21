@@ -54,21 +54,24 @@ class CodeGenerator(ASICParserVisitor):
         return regs[ctx.getText()]
 
     def visitAsignment(self, ctx: ASICParser.AsignmentContext):
-        self.get_current_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
-        return self.visitChildren(ctx)
+        if ctx.arg():
+            self.get_current_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
+            arg_num = self.visit(ctx.arg())
+            self.get_current_instruction().set_arg_num(arg_num)
+        elif ctx.expression():
+            self.get_current_instruction().set_service_operation_type(ServiceType.REG_INIT)
+            expr_value = self.calc_expr(ctx.expression(), 24)
+            self.get_current_instruction().set_reg_init_value(expr_value)
+        self.visit(ctx.sreg())
+        return
 
     def visitArg(self, ctx: ASICParser.ArgContext):
-        self.get_current_instruction().set_arg_num(int(ctx.getText()[1]))
-        return self.visitChildren(ctx)
+        arg_num = int(ctx.getText()[1])
+        if not (0 <= arg_num <= 3):
+            raise AssemblerSyntaxError(f"Invalid argument number: {arg_num}", self.current_source_line)
+        return arg_num
 
     def visitSregop(self, ctx: ASICParser.SregopContext):
-        # Служебная команда:
-        #   Инициализация r0, r1, r2, r3
-        #   Инкремент и декремент r0, r1, r2, r3
-        #   Условный переход
-        #   Циклы
-        #   Задержка
-        #   Конец программы
         self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
@@ -398,5 +401,5 @@ class CodeGenerator(ASICParserVisitor):
     def get_current_instruction(self) -> BitCommand:
         return self.machine_code[-1]
 
-    def calc_expr(self, ctx: ASICParser.ExpressionContext) -> int:
-        return self.expr_evaluator.visit_line(ctx, self.current_source_line)
+    def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:
+        return self.expr_evaluator.visit_line(ctx, self.current_source_line, max_size_in_bits)

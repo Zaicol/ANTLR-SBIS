@@ -84,6 +84,9 @@ class BitCommand(BitInstruction):
     def set_arg_num(self, arg_num: int):
         self[self.REG_ARG_NUM] = arg_num
 
+    def set_reg_init_value(self, value: int):
+        self[self.REG_INIT_VALUE] = value
+
     def set_wait(self):
         self[self.WAIT_FLAG] = True
 
