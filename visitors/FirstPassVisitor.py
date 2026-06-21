@@ -2,7 +2,7 @@ from generated.ASICParserVisitor import ASICParserVisitor
 from generated.ASICParser import ASICParser
 
 
-class LabelCollector(ASICParserVisitor):
+class FirstPassVisitor(ASICParserVisitor):
     def __init__(self):
         self.labels = {}       # Словарь для хранения меток и их адресов
         self.configs = {}      # Словарь для хранения конфигураций и их индексов

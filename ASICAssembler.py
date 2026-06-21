@@ -5,11 +5,11 @@ from generated.ASICLexer import ASICLexer
 from generated.ASICParser import ASICParser
 from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
 from visitors.CodeGenerator import CodeGenerator
-from visitors.LabelCollector import LabelCollector
+from visitors.FirstPassVisitor import FirstPassVisitor
 from utils.tree import generate_graph_tree
 
 
-class ASICCompiler:
+class ASICAssembler:
     def __init__(self, source_file: str):
         self.source_file = source_file
         self.tree = None
@@ -41,16 +41,16 @@ class ASICCompiler:
 
         return self.tree
 
-    def collect_labels(self) -> dict:
+    def first_pass(self) -> FirstPassVisitor:
         """Второй этап: сбор меток, конфигураций и макросов"""
-        label_collector = LabelCollector()
+        label_collector = FirstPassVisitor()
         label_collector.visit(self.tree)
 
         self.labels = label_collector.get_labels()
         self.configs = label_collector.get_configs()
         self.defines = label_collector.get_defines()
 
-        return self.labels
+        return label_collector
 
     def generate_code(self) -> list:
         """Третий этап: генерация машинного кода"""
@@ -67,7 +67,7 @@ class ASICCompiler:
     def assemble(self) -> list:
         """Полный процесс сборки"""
         self.parse()
-        self.collect_labels()
+        self.first_pass()
         return self.generate_code()
 
     @property

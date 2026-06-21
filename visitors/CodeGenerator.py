@@ -108,7 +108,6 @@ class CodeGenerator(ASICParserVisitor):
             # start_gen – запуск генерации очередного пакета данных
             self.get_current_instruction().set_start_gen()
         elif ctx_text == 'wait':
-            # Признак паузы: следующие cmd[7..0] тактов процес-сор не обрабатывает инструкции
             self.get_current_instruction().set_wait()
         elif ctx_text == 'jnz':
             # Условный переход

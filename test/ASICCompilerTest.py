@@ -2,7 +2,7 @@ import unittest
 import os
 import sys
 
-from ASICCompiler import ASICCompiler
+from ASICAssembler import ASICAssembler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.SemanticError import SemanticError
@@ -15,26 +15,16 @@ class ASICCompilerTest(unittest.TestCase):
         self.test_data_dir = "assembler_data"
         self.expected_data_dir = "expected_data"
 
-    def generate_machine_code(self, filename):
-        """
-        Вспомогательный метод
-        Возвращает: (labels, configs, code_generator, has_errors)
-        """
-
+    def assemble_code(self, filename) -> ASICAssembler:
         filepath = os.path.join(self.test_dir, self.test_data_dir, filename)
 
         if not os.path.exists(filepath):
             self.fail(f"Файл не найден: {filepath}")
 
-        compiler: ASICCompiler = ASICCompiler(filepath)
+        assembler: ASICAssembler = ASICAssembler(filepath)
+        assembler.assemble()
 
-        compiler.assemble()
-        labels = compiler.labels
-        configs = compiler.configs
-        code_generator = compiler.code_generator
-        has_errors = compiler.has_errors
-
-        return labels, configs, code_generator, has_errors
+        return assembler
 
     def get_expected_data(self, filename):
         filepath = os.path.join(self.test_dir, self.expected_data_dir, filename)
@@ -48,26 +38,26 @@ class ASICCompilerTest(unittest.TestCase):
     def test_empty_program(self):
         """Тест пустой программы"""
         filename = "test_empty.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
 
-        self.assertFalse(has_errors, "Найдены синтаксические ошибки")
-        self.assertEqual(len(labels), 0, "Найдены метки")
-        self.assertEqual(len(configs), 0, "Найдены конфигурации")
+        self.assertFalse(assembler.has_errors, "Найдены синтаксические ошибки")
+        self.assertEqual(len(assembler.labels), 0, "Найдены метки")
+        self.assertEqual(len(assembler.configs), 0, "Найдены конфигурации")
 
-        hex_code = code_gen.get_full_code_hex_str()
+        hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertIsNotNone(hex_code)
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
     def test_simple_instructions(self):
         """Простой тест без меток и циклов"""
         filename = "test_simple_instructions.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
 
-        self.assertFalse(has_errors)
-        self.assertEqual(len(labels), 0, "Найдены метки")
+        self.assertFalse(assembler.has_errors)
+        self.assertEqual(len(assembler.labels), 0, "Найдены метки")
 
-        hex_code = code_gen.get_full_code_hex_str()
-        binary_code = code_gen.get_full_code_binary_str()
+        hex_code = assembler.code_generator.get_full_code_hex_str()
+        binary_code = assembler.code_generator.get_full_code_binary_str()
 
         self.assertIsNotNone(hex_code)
         self.assertIsNotNone(binary_code)
@@ -80,9 +70,10 @@ class ASICCompilerTest(unittest.TestCase):
     def test_labels(self):
         """Тест меток"""
         filename = "test_labels.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
+        labels = assembler.labels
 
-        self.assertFalse(has_errors)
+        self.assertFalse(assembler.has_errors)
         self.assertEqual(len(labels), 2, "Получено не 2 метки")
         self.assertIn('l0', labels, "Должна присутствовать метка l0")
         self.assertIn('l1', labels, "Должна присутствовать метка l1")
@@ -91,15 +82,16 @@ class ASICCompilerTest(unittest.TestCase):
             self.assertNotEqual(labels['l0'], labels['l1'],
                                 "Метки l0 и l1 имеют одинаковый адрес")
 
-        hex_code = code_gen.get_full_code_hex_str()
+        hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
     def test_configs(self):
         """Тест конфигураций"""
         filename = "test_configs.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
+        configs = assembler.configs
 
-        self.assertFalse(has_errors)
+        self.assertFalse(assembler.has_errors)
         self.assertEqual(len(configs), 3, "Получено не 3 конфигурации")
         self.assertIn('conf_0', configs, "Должна присутствовать конфигурация conf_0")
         self.assertIn('conf_1', configs, "Должна присутствовать конфигурация conf_1")
@@ -109,23 +101,23 @@ class ASICCompilerTest(unittest.TestCase):
         self.assertEqual(len(config_indices), len(set(config_indices)),
                          f"Конфигурации имеют одинаковый индекс: {config_indices}")
 
-        hex_code = code_gen.get_full_code_hex_str()
+        hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertIn("#conf", hex_code, "В программе нет конфигураций")
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
     def test_wait(self):
         """Тест различных значений wait"""
         filename = "test_wait.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
 
-        self.assertFalse(has_errors)
-        hex_code = code_gen.get_full_code_hex_str()
+        hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
     def test_hex_and_binary_consistency(self):
         """Тест согласованности hex и binary представлений"""
         filename = "test_consistency.txt"
-        labels, configs, code_gen, has_errors = self.generate_machine_code(filename)
+        assembler = self.assemble_code(filename)
+        code_gen = assembler.code_generator
 
         hex_code = code_gen.get_full_code_hex_str(show_source_line=True)
         binary_code = code_gen.get_full_code_binary_str(show_source_line=True)
@@ -166,8 +158,8 @@ class ASICCompilerTest(unittest.TestCase):
 
         for filename in test_files:
             with self.subTest(file=filename):
-                _, _, _, has_errors = self.generate_machine_code(filename)
-                self.assertFalse(has_errors,
+                assembler = self.assemble_code(filename)
+                self.assertFalse(assembler.has_errors,
                                  f"Файл {filename} содержит синтаксические ошибки")
 
     def test_has_syntax_errors(self):
@@ -184,7 +176,7 @@ class ASICCompilerTest(unittest.TestCase):
                 filepath = os.path.join(test_dir, filename)
 
                 with self.assertRaises(expected_exception):
-                    self.generate_machine_code(filepath)
+                    self.assemble_code(filepath)
 
 
 def run_tests():

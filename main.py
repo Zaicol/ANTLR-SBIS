@@ -1,4 +1,4 @@
-from ASICCompiler import ASICCompiler
+from ASICAssembler import ASICAssembler
 from visitors.CodeGenerator import CodeGenerator
 from utils.tree import generate_graph_tree
 
@@ -10,23 +10,23 @@ ADD_PREFIX = False
 
 def main():
     # Создание потока входных данных
-    compiler: ASICCompiler = ASICCompiler(TEST_FILE_NAME)
-    compiler.assemble()
+    assembler: ASICAssembler = ASICAssembler(TEST_FILE_NAME)
+    assembler.assemble()
 
-    tree = compiler.tree
-    parser = compiler.parser
+    tree = assembler.tree
+    parser = assembler.parser
     generate_graph_tree(tree, parser)
 
     print(tree.toStringTree(recog=parser))
     print_break()
 
-    print("Найденные метки и их адреса:", compiler.labels)
-    print("Найденные конфигурации и их индексы:", compiler.configs)
-    print("Найденные макросы:", compiler.defines)
+    print("Найденные метки и их адреса:", assembler.labels)
+    print("Найденные конфигурации и их индексы:", assembler.configs)
+    print("Найденные макросы:", assembler.defines)
 
     print_break()
 
-    print_code(compiler.code_generator)
+    print_code(assembler.code_generator)
 
 
 def print_break():
