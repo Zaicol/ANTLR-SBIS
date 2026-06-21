@@ -26,12 +26,12 @@ class CodeGenerator(ASICParserVisitor):
     expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
     def __init__(self, labels: dict[str, Label], configs: dict[str, int],
-                 defines: dict[str, Any], constant_contexts: dict[str, ASICParser.Const_exprContext]):
-        self.expr_evaluator = ExpressionEvaluator(self.defines, self.current_source_line)
+                 defines: dict[str, ASICParser.ExpressionContext],
+                 constant_contexts: dict[str, ASICParser.Const_exprContext]):
+        self.expr_evaluator = ExpressionEvaluator(defines, self.current_source_line, labels)
 
         self.labels = labels
         self.configs = configs
-        self.defines = defines
         for name, const in constant_contexts.items():
             self.constants[name] = self.visit(const)
 

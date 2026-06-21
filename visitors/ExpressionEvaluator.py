@@ -3,17 +3,22 @@ from typing import Any
 from generated.ASICLexer import ASICLexer
 from generated.ASICParserVisitor import ASICParserVisitor
 from generated.ASICParser import ASICParser
+from models.Label import Label
 from models.exceptions.AssemblerError import AssemblerError
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
 
 
 class ExpressionEvaluator(ASICParserVisitor):
-    defines: dict[str, Any]
+    defines: dict[str, int]
+    labels: dict[str, Label]
     source_line: int
 
-    def __init__(self, defines, line):
-        self.defines = defines
+    def __init__(self, defines, line, labels=None):
+        self.defines = {}
+        self.labels = labels
+        for name, define in defines.items():
+            self.defines[name] = self.visit(define)
         self.source_line = line
 
     def visit_line(self, ctx, line, max_size_in_bits: int = 8) -> int:
@@ -194,12 +199,17 @@ class ExpressionEvaluator(ASICParserVisitor):
         return result
 
     def visitDefine_name(self, ctx: ASICParser.Define_nameContext):
-        if not ctx.getText() in self.defines:
-            raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line)
-        try:
-            return int(self.defines[ctx.getText()])
-        except ValueError:
-            raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.source_line)
+        if ctx.getText() in self.defines:
+            try:
+                return int(self.defines[ctx.getText()])
+            except ValueError:
+                raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.source_line)
+        if self.labels is not None and ctx.getText() in self.labels:
+            try:
+                return self.labels[ctx.getText()].source_line
+            except ValueError:
+                raise AssemblerSyntaxError("Not-integer label: " + ctx.getText(), self.source_line)
+        raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line)
 
     def visitConstant(self, ctx: ASICParser.ConstantContext):
         token = ctx.getChild(0).getSymbol()

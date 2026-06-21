@@ -19,7 +19,7 @@ class FirstPassVisitor(ASICParserVisitor):
     def __init__(self):
         self.labels: dict[str, Label] = {}       # Словарь для хранения меток и их адресов
         self.configs = {}      # Словарь для хранения конфигураций и их индексов
-        self.defines = {}      # Словарь для хранения макросов
+        self.defines: dict[str, ASICParser.ExpressionContext] = {}      # Словарь для хранения макросов
         self.constant_contexts: dict[str, ASICParser.Const_exprContext] = {}    # Словарь для хранения констант
         self.source_line = 0   # Текущая строка
         self.config_index = 0  # Текущий индекс конфигурации
@@ -50,10 +50,10 @@ class FirstPassVisitor(ASICParserVisitor):
         if define_name in self.defines:
             raise AssemblerDuplicateError(define_name, line=self.source_line)
 
-        self.defines[define_name] = ctx.expression().getText()
+        self.defines[define_name] = ctx.expression()
         return self.visitChildren(ctx)
 
-    def visitConst_def(self, ctx:ASICParser.Const_defContext):
+    def visitConst_def(self, ctx: ASICParser.Const_defContext):
         const_name = ctx.const_name().getText()
         self.check_reserved(const_name)
         if const_name in self.constant_contexts:
@@ -76,7 +76,7 @@ class FirstPassVisitor(ASICParserVisitor):
     def get_configs(self) -> dict[str, int]:
         return self.configs
 
-    def get_defines(self) -> dict[str, str]:
+    def get_defines(self) -> dict[str, ASICParser.ExpressionContext]:
         return self.defines
 
     def get_constant_contexts(self) -> dict[str, ASICParser.Const_exprContext]:

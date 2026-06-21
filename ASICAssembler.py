@@ -17,7 +17,7 @@ class ASICAssembler:
         self.parser = None
         self.labels: dict[str, Label] = {}
         self.configs: dict[str, int] = {}
-        self.defines: dict[str, str] = {}
+        self.defines: dict[str, ASICParser.ExpressionContext] = {}
         self.constant_contexts: dict[str, ASICParser.Const_exprContext] = {}
         self.code_generator = None
 
