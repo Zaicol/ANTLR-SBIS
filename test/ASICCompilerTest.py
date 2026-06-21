@@ -6,15 +6,13 @@ from ASICAssembler import ASICAssembler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
-from utils.tree import generate_graph_tree
 
 
 class ASICCompilerTest(unittest.TestCase):
 
-    def setUp(self):
-        self.test_dir = "test_files"
-        self.test_data_dir = "assembler_data"
-        self.expected_data_dir = "expected_data"
+    test_dir = "test_files"
+    test_data_dir = "assembler_data"
+    expected_data_dir = "expected_data"
 
     def assemble_code(self, filename) -> ASICAssembler:
         filepath = os.path.join(self.test_dir, self.test_data_dir, filename)
