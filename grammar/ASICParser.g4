@@ -162,7 +162,14 @@ stdop: A1 | A4 | A5 | A128D | SD | DINV ;
 
 aluop: ID | INV | AND | OR | XOR | NOT ;
 
-spcop: GEN | EOP | WAIT LPAREN expression RPAREN | JNZ LPAREN sreg COMMA label RPAREN ;
+spcop
+    : GEN
+    | EOP
+    | WAIT LPAREN expression RPAREN
+    | jump
+    ;
+
+jump: JNZ LPAREN sreg COMMA label RPAREN ;
 
 //opcode : aluop | stdop | spcop;
 //opcode : aluop | stdop ;

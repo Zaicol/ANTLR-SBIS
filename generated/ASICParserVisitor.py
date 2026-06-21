@@ -1,4 +1,4 @@
-# Generated from ASICParser.g4 by ANTLR 4.13.2
+# Generated from grammar/ASICParser.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .ASICParser import ASICParser
@@ -301,6 +301,11 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#spcop.
     def visitSpcop(self, ctx:ASICParser.SpcopContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#jump.
+    def visitJump(self, ctx:ASICParser.JumpContext):
         return self.visitChildren(ctx)
 
 

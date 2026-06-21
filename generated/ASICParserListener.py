@@ -1,4 +1,4 @@
-# Generated from ASICParser.g4 by ANTLR 4.13.2
+# Generated from grammar/ASICParser.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .ASICParser import ASICParser
@@ -536,6 +536,15 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#spcop.
     def exitSpcop(self, ctx:ASICParser.SpcopContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#jump.
+    def enterJump(self, ctx:ASICParser.JumpContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#jump.
+    def exitJump(self, ctx:ASICParser.JumpContext):
         pass
 
 
