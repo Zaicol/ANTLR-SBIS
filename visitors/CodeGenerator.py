@@ -8,6 +8,7 @@ from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
 from models.Constant import Constant
 from models.Label import Label
+from models.enums.ConfigEnums import InputName
 from models.enums.InstructionEnums import *
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
@@ -226,12 +227,12 @@ class CodeGenerator(ASICParserVisitor):
 
         # Получаем название входа: v1, v1h, v2, v3, v4, r0, rev(r0)
         if ctx.vreg():
-            reg_name = ctx.vreg().getText()
+            reg_name = InputName[ctx.vreg().getText().upper()]
         elif ctx.vreg_r():
             if ctx.vreg_r().REV():
                 # Если вход - rev(r0), то устанавливается соответствующий флаг
                 self.config_code[-1].set_rev_reg()
-            reg_name = ctx.vreg_r().R0().getText()
+            reg_name = InputName.R0
             significant_count = 64
         else:
             raise Exception("Unknown vreg")

@@ -1,4 +1,5 @@
 from models.BitInstruction import BitInstruction
+from models.enums.ConfigEnums import InputName
 
 
 class BitConfig(BitInstruction):
@@ -72,7 +73,9 @@ class BitConfig(BitInstruction):
             case 2:
                 if shift_value is not None:
                     self[self.SH_C3] = shift_value
-        self.constant_index = self.constant_index + 1
+            case _:
+                raise ValueError(f"Too many constants: {self.constant_index + 1}")
+        self.constant_index += 1
 
     def set_a_input(self, space: int, reg_number: int, shift_value: int = None, significant_count: int = None):
         match space:
@@ -101,21 +104,21 @@ class BitConfig(BitInstruction):
         if shift_value is not None:
             self[shift_param] = shift_value
 
-    def set_input(self, reg_name: str, shift_value: int = None, significant_count: int = 32):
+    def set_input(self, reg_name: InputName, shift_value: int = None, significant_count: int = 32):
         # Определяем, куда вместится вход
         fit_space = []
         match reg_name:
-            case "v1":
+            case InputName.V1:
                 fit_space = [2, 1, 4]
-            case "v1h":
+            case InputName.V1H:
                 fit_space = [3]
-            case "v2":
+            case InputName.V2:
                 fit_space = [1, 2, 3, 4]
-            case "v3":
+            case InputName.V3:
                 fit_space = [1, 2, 3, 4]
-            case "v4":
+            case InputName.V4:
                 fit_space = [1, 2, 3]
-            case "r0":
+            case InputName.R0:
                 fit_space = [4]
 
         found_space = set(self.free_spaces).intersection(fit_space)

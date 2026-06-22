@@ -57,6 +57,7 @@ class ASICCompilerTest(unittest.TestCase):
 
         hex_code = assembler.code_generator.get_full_code_hex_str()
         binary_code = assembler.code_generator.get_full_code_binary_str()
+        print(binary_code)
 
         self.assertIsNotNone(hex_code)
         self.assertIsNotNone(binary_code)
@@ -163,17 +164,21 @@ class ASICCompilerTest(unittest.TestCase):
         """Тест на определение ошибок"""
         test_dir = "syntax_errors"
         test_cases = [
-            ("test_error_unknown_operator.txt", AssemblerSyntaxError),
-            ("test_error_no_config.txt", AssemblerUndefinedError),
-            ("test_error_constant.txt", BitValueError),
+            ("test_error_unknown_operator.txt", AssemblerSyntaxError,
+             "Syntax error: no viable alternative at input 'r1!='"),
+            ("test_error_no_config.txt", AssemblerUndefinedError,
+             "Undefined identifier: 'conf_1'"),
+            ("test_error_constant.txt", BitValueError,
+             "Expression value 16777217 out of range [0, 16777215]"),
         ]
 
-        for filename, expected_exception in test_cases:
+        for filename, expected_exception, expected_message in test_cases:
             with self.subTest(file=filename, error=expected_exception.__name__):
                 filepath = os.path.join(test_dir, filename)
 
-                with self.assertRaises(expected_exception):
+                with self.assertRaises(expected_exception) as ex:
                     self.assemble_code(filepath)
+                self.assertEqual(str(ex.exception.message), expected_message)
 
 
 def run_tests():

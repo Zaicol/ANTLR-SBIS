@@ -1,8 +1,10 @@
 from enum import Enum
 
 
-class BPKRegister(Enum):
-    R0 = 0
-    R1 = 1
-    R2 = 2
-    R3 = 3
+class InputName(Enum):
+    V1 = "v1"
+    V1H = "v1h"
+    V2 = "v2"
+    V3 = "v3"
+    V4 = "v4"
+    R0 = "r0"
