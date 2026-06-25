@@ -133,7 +133,11 @@ conf_atom: conf_d | conf_c ;
 conf_d: (vreg | vreg_r) (LBRACE expression RBRACE)? (LSHIFT expression)?;
 conf_c: const_name | const_expr ;
 
-const_expr: SC LBRACKET expression RBRACKET (LSHIFT expression)? ;
+const_addr: LBRACKET (expression | vreg_d | sreg) RBRACKET;
+
+const_shift: LSHIFT expression;
+
+const_expr: SC (const_addr)? (const_shift)? ;
 
 op: PLUS | MINUS | STAR | DIV ;
 
@@ -152,6 +156,8 @@ sreg: R0 | R1 | R2 | R3 ;
 arg: ARG0 | ARG1 | ARG2 | ARG3 ;
 
 vreg: V1 | V1H | V2 | V3 | V4;
+
+vreg_d: V1 | V2 | V3 | V4;
 
 vreg_r: R0 | REV LPAREN R0 RPAREN;
 

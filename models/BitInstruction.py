@@ -1,3 +1,6 @@
+from enum import IntEnum
+
+
 class BitInstruction:
     len: int = 32
 
@@ -5,13 +8,16 @@ class BitInstruction:
         self.source_line = source_line
         self.bits: list[int] = [0 for _ in range(self.len)]
 
-    def __setitem__(self, key: int | slice, value: int | bool):
+    def __setitem__(self, key: int | slice, value: int | IntEnum | bool):
 
         if isinstance(value, bool):
             value = 1 if value else 0
 
+        if isinstance(value, IntEnum):
+            value = value.value
+
         if not isinstance(value, int):
-            raise TypeError("Value must be an integer")
+            raise TypeError(f"Bit value expected to be an integer, but got {type(value)}")
 
         if isinstance(key, int):
             # Установка одного бита: obj[5] = 1

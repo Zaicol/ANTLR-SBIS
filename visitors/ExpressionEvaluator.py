@@ -211,46 +211,72 @@ class ExpressionEvaluator(ASICParserVisitor):
                 raise AssemblerSyntaxError("Not-integer label: " + ctx.getText(), self.source_line)
         raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line)
 
+    # def visitConstant(self, ctx: ASICParser.ConstantContext):
+    #     token = ctx.getChild(0).getSymbol()
+    #     token_type = token.type
+    #     text = ctx.getText()
+    #     text_up = text.upper()
+    #
+    #     if token_type == ASICLexer.HEXADECIMAL:
+    #         if text_up.endswith('H'):
+    #             num_part = text[:-1]
+    #         else:  # начинается с 0x или 0X
+    #             num_part = text[2:]
+    #         value = int(num_part, 16)
+    #
+    #     elif token_type == ASICLexer.BINARY:
+    #         if text_up.endswith('B'):
+    #             num_part = text[:-1]
+    #         else:  # начинается с 0b или 0B
+    #             num_part = text[2:]
+    #         value = int(num_part, 2)
+    #
+    #     elif token_type == ASICLexer.OCTAL:
+    #         if text_up.endswith('O'):
+    #             num_part = text[:-1]
+    #         else:  # начинается с 0o или 0O
+    #             num_part = text[2:]
+    #         value = int(num_part, 8)
+    #
+    #     elif token_type == ASICLexer.DECIMAL:
+    #         if text_up.endswith('D'):
+    #             num_part = text[:-1]
+    #         elif text_up.startswith('0D'):
+    #             num_part = text[2:]
+    #         else:
+    #             num_part = text
+    #         value = int(num_part, 10)
+    #
+    #     else:
+    #         raise AssemblerError(f"Unknown constant: {text}")
+    #
+    #     return value
+
     def visitConstant(self, ctx: ASICParser.ConstantContext):
         token = ctx.getChild(0).getSymbol()
-        token_type = token.type
         text = ctx.getText()
-        text_up = text.upper()
 
-        if token_type == ASICLexer.HEXADECIMAL:
-            if text_up.endswith('H'):
-                num_part = text[:-1]
-            else:  # начинается с 0x или 0X
-                num_part = text[2:]
-            value = int(num_part, 16)
+        rules = {
+            # token.type: (base, prefix, suffix)
+            ASICLexer.BINARY: (2, "0B", "B"),
+            ASICLexer.OCTAL: (8, "0O", "O"),
+            ASICLexer.DECIMAL: (10, "0D", "D"),
+            ASICLexer.HEXADECIMAL: (16, "0X", "H"),
+        }
 
-        elif token_type == ASICLexer.BINARY:
-            if text_up.endswith('B'):
-                num_part = text[:-1]
-            else:  # начинается с 0b или 0B
-                num_part = text[2:]
-            value = int(num_part, 2)
-
-        elif token_type == ASICLexer.OCTAL:
-            if text_up.endswith('O'):
-                num_part = text[:-1]
-            else:  # начинается с 0o или 0O
-                num_part = text[2:]
-            value = int(num_part, 8)
-
-        elif token_type == ASICLexer.DECIMAL:
-            if text_up.endswith('D'):
-                num_part = text[:-1]
-            elif text_up.startswith('0D'):
-                num_part = text[2:]
-            else:
-                num_part = text
-            value = int(num_part, 10)
-
-        else:
+        rule = rules.get(token.type)
+        if not rule:
             raise AssemblerError(f"Unknown constant: {text}")
 
-        return value
+        base, prefix, suffix = rule
+        t = text.upper()
+
+        if t.startswith(prefix):
+            t = t[2:]
+        elif t.endswith(suffix):
+            t = t[:-1]
+
+        return int(t, base)
 
     def visit_if_not_null(self, expr):
         if expr is None:

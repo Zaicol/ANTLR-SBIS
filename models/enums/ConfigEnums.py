@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class InputName(Enum):
@@ -8,3 +8,10 @@ class InputName(Enum):
     V3 = "v3"
     V4 = "v4"
     R0 = "r0"
+
+
+class BPDAddress(IntEnum):
+    V1 = 0
+    V2 = 1
+    V3 = 2
+    V4 = 3

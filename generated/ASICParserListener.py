@@ -395,6 +395,24 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ASICParser#const_addr.
+    def enterConst_addr(self, ctx:ASICParser.Const_addrContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#const_addr.
+    def exitConst_addr(self, ctx:ASICParser.Const_addrContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#const_shift.
+    def enterConst_shift(self, ctx:ASICParser.Const_shiftContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#const_shift.
+    def exitConst_shift(self, ctx:ASICParser.Const_shiftContext):
+        pass
+
+
     # Enter a parse tree produced by ASICParser#const_expr.
     def enterConst_expr(self, ctx:ASICParser.Const_exprContext):
         pass
@@ -482,6 +500,15 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#vreg.
     def exitVreg(self, ctx:ASICParser.VregContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#vreg_d.
+    def enterVreg_d(self, ctx:ASICParser.Vreg_dContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#vreg_d.
+    def exitVreg_d(self, ctx:ASICParser.Vreg_dContext):
         pass
 
 

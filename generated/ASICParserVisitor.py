@@ -224,6 +224,16 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ASICParser#const_addr.
+    def visitConst_addr(self, ctx:ASICParser.Const_addrContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#const_shift.
+    def visitConst_shift(self, ctx:ASICParser.Const_shiftContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ASICParser#const_expr.
     def visitConst_expr(self, ctx:ASICParser.Const_exprContext):
         return self.visitChildren(ctx)
@@ -271,6 +281,11 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#vreg.
     def visitVreg(self, ctx:ASICParser.VregContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#vreg_d.
+    def visitVreg_d(self, ctx:ASICParser.Vreg_dContext):
         return self.visitChildren(ctx)
 
 

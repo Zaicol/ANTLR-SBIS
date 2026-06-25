@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class TransformationType(Enum):
+class TransformationType(IntEnum):
     SP = 0
     ALU = 1
 
 
-class SPType(Enum):
+class SPType(IntEnum):
     A1 = 0
     A4 = 1
     A5 = 2
@@ -17,7 +17,7 @@ class SPType(Enum):
     DINV_K64 = 7
 
 
-class ALUType(Enum):
+class ALUType(IntEnum):
     ID = 0
     AND = 1
     OR = 2
@@ -26,7 +26,7 @@ class ALUType(Enum):
     REV = 5
 
 
-class OutputPlaces(Enum):
+class OutputPlaces(IntEnum):
     # Биты
     CMP = 0
     V1 = 1
@@ -37,19 +37,19 @@ class OutputPlaces(Enum):
     V4M = 32
 
 
-class InstructionType(Enum):
+class InstructionType(IntEnum):
     SERVICE = 0
     STANDARD = 1
 
 
-class ServiceType(Enum):
+class ServiceType(IntEnum):
     REG_INIT = 0
     INC_DEC = 1
     REG_ASSIGN = 2
     JNZ = 3
 
 
-class ServiceRegister(Enum):
+class ServiceRegister(IntEnum):
     R0 = 0
     R1 = 1
     R2 = 2

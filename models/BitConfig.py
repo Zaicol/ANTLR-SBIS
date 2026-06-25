@@ -1,4 +1,5 @@
 from models.BitInstruction import BitInstruction
+from models.Constant import Constant
 from models.enums.ConfigEnums import InputName
 
 
@@ -48,6 +49,7 @@ class BitConfig(BitInstruction):
                 raise ValueError(f"Invalid bit string length. Expected {self.len}, got {len(bits)}")
             self.bits = list(bits)
         self.constant_index = 0
+        self.is_const3_set = False
         self.free_spaces = [1, 2, 3, 4]
         self.source_line = source_line
 
@@ -60,19 +62,63 @@ class BitConfig(BitInstruction):
 
         return result
 
-    def set_constant(self, value: int, shift_value: int = None):
+    def set_const3(self, constant: Constant):
+        if self.is_const3_set:
+            raise ValueError("Constant 3 is already set")
+
+        bpd = constant.get_bpd()
+        shift_value = constant.get_shift()
+        if bpd is not None:
+            self[self.REC3] = True
+            self[self.AC] = bpd
+        if shift_value is not None:
+            self[self.SH_C3] = shift_value
+
+        self.is_const3_set = True
+
+    def set_const1(self, constant: Constant):
+        reg = constant.get_reg()
+        address = constant.get_address()
+        shift_value = constant.get_shift()
+        if reg is not None:
+            self[self.DIR] = True
+            self[self.ARR] = reg
+        else:
+            self[self.ARC1] = address
+        if shift_value is not None:
+            self[self.SH_C1] = shift_value
+
+    def set_const2(self, constant: Constant):
+        reg = constant.get_reg()
+        address = constant.get_address()
+        shift_value = constant.get_shift()
+
+        if reg is not None:
+            if self[self.DIR]:
+                raise ValueError("const1 is already set")
+            else:
+                self[self.DIR] = True
+                self[self.ARR] = reg
+
+                self[self.ARC2] = self[self.ARC1]
+                self[self.SH_C2] = self[self.SH_C1]
+
+                self.set_const1(constant)
+            return
+
+        self[self.ARC2] = address
+        if shift_value is not None:
+            self[self.SH_C2] = shift_value
+
+    def set_constant(self, constant: Constant):
+        if constant.is_const3():
+            return self.set_const3(constant)
+
         match self.constant_index:
             case 0:
-                self[self.ARC1] = value
-                if shift_value is not None:
-                    self[self.SH_C1] = shift_value
+                self.set_const1(constant)
             case 1:
-                self[self.ARC2] = value
-                if shift_value is not None:
-                    self[self.SH_C2] = shift_value
-            case 2:
-                if shift_value is not None:
-                    self[self.SH_C3] = shift_value
+                self.set_const2(constant)
             case _:
                 raise ValueError(f"Too many constants: {self.constant_index + 1}")
         self.constant_index += 1

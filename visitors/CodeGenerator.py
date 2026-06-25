@@ -8,7 +8,7 @@ from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
 from models.Constant import Constant
 from models.Label import Label
-from models.enums.ConfigEnums import InputName
+from models.enums.ConfigEnums import InputName, BPDAddress
 from models.enums.InstructionEnums import *
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
@@ -33,26 +33,20 @@ class CodeGenerator(ASICParserVisitor):
 
         self.labels = labels
         self.configs = configs
-        for name, const in constant_contexts.items():
-            self.constants[name] = self.visit(const)
 
         self.config_code = []
         self.machine_code = []
         self.for_loops = []
         self.current_source_line = 0
 
+        for name, const in constant_contexts.items():
+            self.constants[name] = self.visit(const)
+
     def visitDefine_def(self, ctx: ASICParser.Define_defContext):
         return
 
     def visitSreg(self, ctx: ASICParser.SregContext):
-        regs = {
-            "r0": ServiceRegister.R0,
-            "r1": ServiceRegister.R1,
-            "r2": ServiceRegister.R2,
-            "r3": ServiceRegister.R3
-        }
-        self.get_current_instruction().set_service_reg(regs[ctx.getText()])
-        return regs[ctx.getText()]
+        return ServiceRegister[ctx.getText().upper()]
 
     def visitAsignment(self, ctx: ASICParser.AsignmentContext):
         if ctx.arg():
@@ -63,7 +57,7 @@ class CodeGenerator(ASICParserVisitor):
             self.get_current_instruction().set_service_operation_type(ServiceType.REG_INIT)
             expr_value = self.calc_expr(ctx.expression(), 24)
             self.get_current_instruction().set_reg_init_value(expr_value)
-        self.visit(ctx.sreg())
+        self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
         return
 
     def visitArg(self, ctx: ASICParser.ArgContext):
@@ -113,7 +107,7 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitJump(self, ctx: ASICParser.JumpContext):
         self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
-        self.visit(ctx.sreg())
+        self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
         label_name = ctx.label().getText()
         label = self.labels.get(label_name, None)
         if label is None:
@@ -131,10 +125,11 @@ class CodeGenerator(ASICParserVisitor):
         op = ctx.getChild(1).getText()
         self.get_current_instruction().set_service_operation_type(ServiceType.INC_DEC)
         if op == '--':
+            self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
             self.get_current_instruction().set_decrement()
         elif op == '++':
+            self.get_current_instruction().set_service_reg(ServiceRegister.R0)
             self.get_current_instruction().set_increment()
-        return self.visitChildren(ctx)
 
     def visitResultexpr(self, ctx: ASICParser.ResultexprContext):
         outputs: list[ASICParser.OutputContext] = ctx.output()
@@ -197,11 +192,21 @@ class CodeGenerator(ASICParserVisitor):
         self.config_code.append(BitConfig(source_line=self.current_source_line))
         return self.visitChildren(ctx)
 
+    def visitVreg_d(self, ctx: ASICParser.Vreg_dContext):
+        return BPDAddress[ctx.getText().upper()]
+
     def visitConst_expr(self, ctx: ASICParser.Const_exprContext) -> Constant:
-        const_addr = self.calc_expr(ctx.expression()[0])
-        constant = Constant(const_addr)
-        if ctx.LSHIFT():
-            constant.set_shift(self.calc_expr(ctx.expression()[1]))
+        constant = Constant()
+        if ctx.const_addr():
+            addr_ctx: ASICParser.Const_addrContext = ctx.const_addr()
+            if addr_ctx.expression():
+                constant.set_address(self.calc_expr(ctx.const_addr().expression()))
+            elif addr_ctx.sreg():
+                constant.set_reg(self.visit(addr_ctx.sreg()))
+            elif addr_ctx.vreg_d():
+                constant.set_bpd(self.visit(addr_ctx.vreg_d()))
+        if ctx.const_shift():
+            constant.set_shift(self.calc_expr(ctx.const_shift().expression()))
         return constant
 
     def visitConst_name(self, ctx: ASICParser.Const_nameContext) -> Constant:
@@ -218,7 +223,7 @@ class CodeGenerator(ASICParserVisitor):
             constant: Constant = self.visit(ctx.const_name())
         else:
             raise AssemblerSyntaxError("Unknown conf_c", self.current_source_line)
-        self.config_code[-1].set_constant(constant.get_address(), constant.get_shift())
+        self.config_code[-1].set_constant(constant)
         return
 
     def visitConf_d(self, ctx: ASICParser.Conf_dContext):
