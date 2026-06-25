@@ -74,6 +74,8 @@ A5 : A '5';
 A128D : A '128' D ;
 DINV : D I N V ;
 SD: D;
+D_K64: D K '64';
+DINV_K64: D I N V K '64';
 SC: C;
 
 ID : I D ;

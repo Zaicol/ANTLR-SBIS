@@ -13,8 +13,8 @@ class SPType(IntEnum):
     A128D = 3
     D = 4
     DINV = 5
-    D_K64 = 6
-    DINV_K64 = 7
+    DK64 = 6
+    DINVK64 = 7
 
 
 class ALUType(IntEnum):

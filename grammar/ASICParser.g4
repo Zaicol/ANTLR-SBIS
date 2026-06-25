@@ -165,7 +165,7 @@ vreg_special: V2N | V4M;
 
 output: vreg | vreg_special | CMP | OUT ;
 
-stdop: A1 | A4 | A5 | A128D | SD | DINV ;
+stdop: A1 | A4 | A5 | A128D | SD | DINV | D_K64 | DINV_K64 ;
 
 aluop: ID | INV | AND | OR | XOR | NOT ;
 

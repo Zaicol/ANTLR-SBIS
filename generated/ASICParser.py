@@ -10,7 +10,7 @@ else:
 
 def serializedATN():
     return [
-        4,1,83,465,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        4,1,85,465,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
         6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,
         2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,
         7,20,2,21,7,21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,
@@ -51,10 +51,10 @@ def serializedATN():
         59,1,59,1,59,1,60,1,60,1,60,0,0,61,0,2,4,6,8,10,12,14,16,18,20,22,
         24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,
         68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,
-        108,110,112,114,116,118,120,0,14,1,0,1,4,2,0,45,46,55,56,1,0,47,
-        49,1,0,45,46,3,0,40,40,42,42,62,63,1,0,60,61,1,0,45,48,1,0,5,8,1,
-        0,9,12,1,0,13,17,2,0,13,13,15,17,1,0,71,72,1,0,22,27,2,0,29,29,31,
-        35,457,0,125,1,0,0,0,2,132,1,0,0,0,4,137,1,0,0,0,6,144,1,0,0,0,8,
+        108,110,112,114,116,118,120,0,14,1,0,1,4,2,0,47,48,57,58,1,0,49,
+        51,1,0,47,48,3,0,42,42,44,44,64,65,1,0,62,63,1,0,47,50,1,0,5,8,1,
+        0,9,12,1,0,13,17,2,0,13,13,15,17,1,0,73,74,1,0,22,29,2,0,31,31,33,
+        37,457,0,125,1,0,0,0,2,132,1,0,0,0,4,137,1,0,0,0,6,144,1,0,0,0,8,
         149,1,0,0,0,10,151,1,0,0,0,12,155,1,0,0,0,14,161,1,0,0,0,16,165,
         1,0,0,0,18,184,1,0,0,0,20,188,1,0,0,0,22,192,1,0,0,0,24,194,1,0,
         0,0,26,205,1,0,0,0,28,221,1,0,0,0,30,223,1,0,0,0,32,227,1,0,0,0,
@@ -73,9 +73,9 @@ def serializedATN():
         0,0,128,133,3,8,4,0,129,133,3,18,9,0,130,133,3,4,2,0,131,133,3,6,
         3,0,132,128,1,0,0,0,132,129,1,0,0,0,132,130,1,0,0,0,132,131,1,0,
         0,0,133,135,1,0,0,0,134,136,3,120,60,0,135,134,1,0,0,0,135,136,1,
-        0,0,0,136,3,1,0,0,0,137,138,5,73,0,0,138,139,5,37,0,0,139,140,3,
-        98,49,0,140,141,5,66,0,0,141,142,3,16,8,0,142,143,5,38,0,0,143,5,
-        1,0,0,0,144,145,5,74,0,0,145,7,1,0,0,0,146,150,3,10,5,0,147,150,
+        0,0,0,136,3,1,0,0,0,137,138,5,75,0,0,138,139,5,39,0,0,139,140,3,
+        98,49,0,140,141,5,68,0,0,141,142,3,16,8,0,142,143,5,40,0,0,143,5,
+        1,0,0,0,144,145,5,76,0,0,145,7,1,0,0,0,146,150,3,10,5,0,147,150,
         3,12,6,0,148,150,3,14,7,0,149,146,1,0,0,0,149,147,1,0,0,0,149,148,
         1,0,0,0,150,9,1,0,0,0,151,152,5,19,0,0,152,153,3,88,44,0,153,154,
         3,68,34,0,154,11,1,0,0,0,155,156,5,20,0,0,156,159,3,90,45,0,157,
@@ -83,26 +83,26 @@ def serializedATN():
         160,13,1,0,0,0,161,162,5,21,0,0,162,163,3,92,46,0,163,164,3,84,42,
         0,164,15,1,0,0,0,165,166,7,0,0,0,166,17,1,0,0,0,167,169,3,32,16,
         0,168,167,1,0,0,0,168,169,1,0,0,0,169,181,1,0,0,0,170,182,3,20,10,
-        0,171,172,3,20,10,0,172,173,5,66,0,0,173,174,3,20,10,0,174,182,1,
-        0,0,0,175,176,3,20,10,0,176,177,5,66,0,0,177,178,3,20,10,0,178,179,
-        5,66,0,0,179,180,3,20,10,0,180,182,1,0,0,0,181,170,1,0,0,0,181,171,
+        0,171,172,3,20,10,0,172,173,5,68,0,0,173,174,3,20,10,0,174,182,1,
+        0,0,0,175,176,3,20,10,0,176,177,5,68,0,0,177,178,3,20,10,0,178,179,
+        5,68,0,0,179,180,3,20,10,0,180,182,1,0,0,0,181,170,1,0,0,0,181,171,
         1,0,0,0,181,175,1,0,0,0,182,185,1,0,0,0,183,185,3,32,16,0,184,168,
         1,0,0,0,184,183,1,0,0,0,185,19,1,0,0,0,186,189,3,22,11,0,187,189,
         3,28,14,0,188,186,1,0,0,0,188,187,1,0,0,0,189,21,1,0,0,0,190,193,
         3,24,12,0,191,193,3,26,13,0,192,190,1,0,0,0,192,191,1,0,0,0,193,
-        23,1,0,0,0,194,195,3,98,49,0,195,198,5,57,0,0,196,199,3,68,34,0,
+        23,1,0,0,0,194,195,3,98,49,0,195,198,5,59,0,0,196,199,3,68,34,0,
         197,199,3,100,50,0,198,196,1,0,0,0,198,197,1,0,0,0,199,25,1,0,0,
-        0,200,201,5,5,0,0,201,206,5,64,0,0,202,203,3,98,49,0,203,204,5,65,
+        0,200,201,5,5,0,0,201,206,5,66,0,0,202,203,3,98,49,0,203,204,5,67,
         0,0,204,206,1,0,0,0,205,200,1,0,0,0,205,202,1,0,0,0,206,27,1,0,0,
-        0,207,208,3,96,48,0,208,211,5,57,0,0,209,212,3,114,57,0,210,212,
+        0,207,208,3,96,48,0,208,211,5,59,0,0,209,212,3,114,57,0,210,212,
         3,112,56,0,211,209,1,0,0,0,211,210,1,0,0,0,212,213,1,0,0,0,213,214,
-        3,94,47,0,214,222,1,0,0,0,215,216,3,96,48,0,216,217,5,57,0,0,217,
+        3,94,47,0,214,222,1,0,0,0,215,216,3,96,48,0,216,217,5,59,0,0,217,
         218,3,116,58,0,218,222,1,0,0,0,219,222,3,116,58,0,220,222,3,30,15,
         0,221,207,1,0,0,0,221,215,1,0,0,0,221,219,1,0,0,0,221,220,1,0,0,
-        0,222,29,1,0,0,0,223,224,5,76,0,0,224,225,5,57,0,0,225,226,5,17,
-        0,0,226,31,1,0,0,0,227,228,3,34,17,0,228,229,5,67,0,0,229,33,1,0,
-        0,0,230,231,5,81,0,0,231,35,1,0,0,0,232,239,3,16,8,0,233,239,3,88,
-        44,0,234,235,5,37,0,0,235,236,3,68,34,0,236,237,5,38,0,0,237,239,
+        0,222,29,1,0,0,0,223,224,5,78,0,0,224,225,5,59,0,0,225,226,5,17,
+        0,0,226,31,1,0,0,0,227,228,3,34,17,0,228,229,5,69,0,0,229,33,1,0,
+        0,0,230,231,5,83,0,0,231,35,1,0,0,0,232,239,3,16,8,0,233,239,3,88,
+        44,0,234,235,5,39,0,0,235,236,3,68,34,0,236,237,5,40,0,0,237,239,
         1,0,0,0,238,232,1,0,0,0,238,233,1,0,0,0,238,234,1,0,0,0,239,37,1,
         0,0,0,240,245,3,36,18,0,241,242,3,40,20,0,242,243,3,38,19,0,243,
         245,1,0,0,0,244,240,1,0,0,0,244,241,1,0,0,0,245,39,1,0,0,0,246,247,
@@ -118,57 +118,57 @@ def serializedATN():
         53,1,0,0,0,280,278,1,0,0,0,281,282,7,5,0,0,282,55,1,0,0,0,283,289,
         3,52,26,0,284,285,3,54,27,0,285,286,3,52,26,0,286,288,1,0,0,0,287,
         284,1,0,0,0,288,291,1,0,0,0,289,287,1,0,0,0,289,290,1,0,0,0,290,
-        57,1,0,0,0,291,289,1,0,0,0,292,297,3,56,28,0,293,294,5,51,0,0,294,
+        57,1,0,0,0,291,289,1,0,0,0,292,297,3,56,28,0,293,294,5,53,0,0,294,
         296,3,56,28,0,295,293,1,0,0,0,296,299,1,0,0,0,297,295,1,0,0,0,297,
         298,1,0,0,0,298,59,1,0,0,0,299,297,1,0,0,0,300,305,3,58,29,0,301,
-        302,5,50,0,0,302,304,3,58,29,0,303,301,1,0,0,0,304,307,1,0,0,0,305,
+        302,5,52,0,0,302,304,3,58,29,0,303,301,1,0,0,0,304,307,1,0,0,0,305,
         303,1,0,0,0,305,306,1,0,0,0,306,61,1,0,0,0,307,305,1,0,0,0,308,313,
-        3,60,30,0,309,310,5,53,0,0,310,312,3,60,30,0,311,309,1,0,0,0,312,
+        3,60,30,0,309,310,5,55,0,0,310,312,3,60,30,0,311,309,1,0,0,0,312,
         315,1,0,0,0,313,311,1,0,0,0,313,314,1,0,0,0,314,63,1,0,0,0,315,313,
-        1,0,0,0,316,321,3,62,31,0,317,318,5,52,0,0,318,320,3,62,31,0,319,
+        1,0,0,0,316,321,3,62,31,0,317,318,5,54,0,0,318,320,3,62,31,0,319,
         317,1,0,0,0,320,323,1,0,0,0,321,319,1,0,0,0,321,322,1,0,0,0,322,
-        65,1,0,0,0,323,321,1,0,0,0,324,329,3,64,32,0,325,326,5,54,0,0,326,
+        65,1,0,0,0,323,321,1,0,0,0,324,329,3,64,32,0,325,326,5,56,0,0,326,
         328,3,64,32,0,327,325,1,0,0,0,328,331,1,0,0,0,329,327,1,0,0,0,329,
         330,1,0,0,0,330,67,1,0,0,0,331,329,1,0,0,0,332,335,3,16,8,0,333,
         335,3,66,33,0,334,332,1,0,0,0,334,333,1,0,0,0,335,69,1,0,0,0,336,
-        337,5,30,0,0,337,338,5,37,0,0,338,339,3,72,36,0,339,340,5,38,0,0,
-        340,71,1,0,0,0,341,346,3,74,37,0,342,343,5,45,0,0,343,345,3,74,37,
+        337,5,32,0,0,337,338,5,39,0,0,338,339,3,72,36,0,339,340,5,40,0,0,
+        340,71,1,0,0,0,341,346,3,74,37,0,342,343,5,47,0,0,343,345,3,74,37,
         0,344,342,1,0,0,0,345,348,1,0,0,0,346,344,1,0,0,0,346,347,1,0,0,
         0,347,73,1,0,0,0,348,346,1,0,0,0,349,352,3,76,38,0,350,352,3,78,
         39,0,351,349,1,0,0,0,351,350,1,0,0,0,352,75,1,0,0,0,353,356,3,102,
         51,0,354,356,3,106,53,0,355,353,1,0,0,0,355,354,1,0,0,0,356,361,
-        1,0,0,0,357,358,5,43,0,0,358,359,3,68,34,0,359,360,5,44,0,0,360,
+        1,0,0,0,357,358,5,45,0,0,358,359,3,68,34,0,359,360,5,46,0,0,360,
         362,1,0,0,0,361,357,1,0,0,0,361,362,1,0,0,0,362,365,1,0,0,0,363,
-        364,5,58,0,0,364,366,3,68,34,0,365,363,1,0,0,0,365,366,1,0,0,0,366,
+        364,5,60,0,0,364,366,3,68,34,0,365,363,1,0,0,0,365,366,1,0,0,0,366,
         77,1,0,0,0,367,370,3,92,46,0,368,370,3,84,42,0,369,367,1,0,0,0,369,
-        368,1,0,0,0,370,79,1,0,0,0,371,375,5,39,0,0,372,376,3,68,34,0,373,
+        368,1,0,0,0,370,79,1,0,0,0,371,375,5,41,0,0,372,376,3,68,34,0,373,
         376,3,104,52,0,374,376,3,98,49,0,375,372,1,0,0,0,375,373,1,0,0,0,
-        375,374,1,0,0,0,376,377,1,0,0,0,377,378,5,41,0,0,378,81,1,0,0,0,
-        379,380,5,58,0,0,380,381,3,68,34,0,381,83,1,0,0,0,382,384,5,28,0,
+        375,374,1,0,0,0,376,377,1,0,0,0,377,378,5,43,0,0,378,81,1,0,0,0,
+        379,380,5,60,0,0,380,381,3,68,34,0,381,83,1,0,0,0,382,384,5,30,0,
         0,383,385,3,80,40,0,384,383,1,0,0,0,384,385,1,0,0,0,385,387,1,0,
         0,0,386,388,3,82,41,0,387,386,1,0,0,0,387,388,1,0,0,0,388,85,1,0,
-        0,0,389,390,7,6,0,0,390,87,1,0,0,0,391,392,5,81,0,0,392,89,1,0,0,
-        0,393,394,5,81,0,0,394,91,1,0,0,0,395,396,5,81,0,0,396,93,1,0,0,
-        0,397,401,5,37,0,0,398,402,3,90,45,0,399,402,3,72,36,0,400,402,3,
+        0,0,389,390,7,6,0,0,390,87,1,0,0,0,391,392,5,83,0,0,392,89,1,0,0,
+        0,393,394,5,83,0,0,394,91,1,0,0,0,395,396,5,83,0,0,396,93,1,0,0,
+        0,397,401,5,39,0,0,398,402,3,90,45,0,399,402,3,72,36,0,400,402,3,
         70,35,0,401,398,1,0,0,0,401,399,1,0,0,0,401,400,1,0,0,0,402,403,
-        1,0,0,0,403,404,5,38,0,0,404,95,1,0,0,0,405,417,3,110,55,0,406,407,
-        5,37,0,0,407,410,3,110,55,0,408,409,5,66,0,0,409,411,3,110,55,0,
+        1,0,0,0,403,404,5,40,0,0,404,95,1,0,0,0,405,417,3,110,55,0,406,407,
+        5,39,0,0,407,410,3,110,55,0,408,409,5,68,0,0,409,411,3,110,55,0,
         410,408,1,0,0,0,411,412,1,0,0,0,412,410,1,0,0,0,412,413,1,0,0,0,
-        413,414,1,0,0,0,414,415,5,38,0,0,415,417,1,0,0,0,416,405,1,0,0,0,
+        413,414,1,0,0,0,414,415,5,40,0,0,415,417,1,0,0,0,416,405,1,0,0,0,
         416,406,1,0,0,0,417,97,1,0,0,0,418,419,7,7,0,0,419,99,1,0,0,0,420,
         421,7,8,0,0,421,101,1,0,0,0,422,423,7,9,0,0,423,103,1,0,0,0,424,
-        425,7,10,0,0,425,105,1,0,0,0,426,432,5,5,0,0,427,428,5,30,0,0,428,
-        429,5,37,0,0,429,430,5,5,0,0,430,432,5,38,0,0,431,426,1,0,0,0,431,
+        425,7,10,0,0,425,105,1,0,0,0,426,432,5,5,0,0,427,428,5,32,0,0,428,
+        429,5,39,0,0,429,430,5,5,0,0,430,432,5,40,0,0,431,426,1,0,0,0,431,
         427,1,0,0,0,432,107,1,0,0,0,433,434,7,11,0,0,434,109,1,0,0,0,435,
-        440,3,102,51,0,436,440,3,108,54,0,437,440,5,75,0,0,438,440,5,76,
+        440,3,102,51,0,436,440,3,108,54,0,437,440,5,77,0,0,438,440,5,78,
         0,0,439,435,1,0,0,0,439,436,1,0,0,0,439,437,1,0,0,0,439,438,1,0,
         0,0,440,111,1,0,0,0,441,442,7,12,0,0,442,113,1,0,0,0,443,444,7,13,
-        0,0,444,115,1,0,0,0,445,454,5,77,0,0,446,454,5,78,0,0,447,448,5,
-        79,0,0,448,449,5,37,0,0,449,450,3,68,34,0,450,451,5,38,0,0,451,454,
+        0,0,444,115,1,0,0,0,445,454,5,79,0,0,446,454,5,80,0,0,447,448,5,
+        81,0,0,448,449,5,39,0,0,449,450,3,68,34,0,450,451,5,40,0,0,451,454,
         1,0,0,0,452,454,3,118,59,0,453,445,1,0,0,0,453,446,1,0,0,0,453,447,
-        1,0,0,0,453,452,1,0,0,0,454,117,1,0,0,0,455,456,5,80,0,0,456,457,
-        5,37,0,0,457,458,3,98,49,0,458,459,5,66,0,0,459,460,3,34,17,0,460,
-        461,5,38,0,0,461,119,1,0,0,0,462,463,5,83,0,0,463,121,1,0,0,0,41,
+        1,0,0,0,453,452,1,0,0,0,454,117,1,0,0,0,455,456,5,82,0,0,456,457,
+        5,39,0,0,457,458,3,98,49,0,458,459,5,68,0,0,459,460,3,34,17,0,460,
+        461,5,40,0,0,461,119,1,0,0,0,462,463,5,85,0,0,463,121,1,0,0,0,41,
         125,132,135,149,159,168,181,184,188,192,198,205,211,221,238,244,
         256,267,278,289,297,305,313,321,329,334,346,351,355,361,365,369,
         375,384,387,401,412,416,431,439,453
@@ -192,26 +192,27 @@ class ASICParser ( Parser ):
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "'('", "')'", 
-                     "'['", "'<'", "']'", "'>'", "'{'", "'}'", "'+'", "'-'", 
-                     "'*'", "'/'", "'%'", "'^'", "'&'", "'&&'", "'|'", "'||'", 
-                     "'!'", "'~'", "'='", "'<<'", "'>>'", "'=='", "'!='", 
-                     "'<='", "'>='", "'++'", "'--'", "','", "':'", "';'", 
-                     "'.'", "'#'" ]
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "<INVALID>", "'('", "')'", "'['", "'<'", "']'", "'>'", 
+                     "'{'", "'}'", "'+'", "'-'", "'*'", "'/'", "'%'", "'^'", 
+                     "'&'", "'&&'", "'|'", "'||'", "'!'", "'~'", "'='", 
+                     "'<<'", "'>>'", "'=='", "'!='", "'<='", "'>='", "'++'", 
+                     "'--'", "','", "':'", "';'", "'.'", "'#'" ]
 
     symbolicNames = [ "<INVALID>", "HEXADECIMAL", "DECIMAL", "BINARY", "OCTAL", 
                       "R0", "R1", "R2", "R3", "ARG0", "ARG1", "ARG2", "ARG3", 
                       "V1", "V1H", "V2", "V3", "V4", "PROCCHAR", "DEFINE", 
                       "CONFIG", "CONST", "A1", "A4", "A5", "A128D", "DINV", 
-                      "SD", "SC", "ID", "REV", "INV", "AND", "OR", "XOR", 
-                      "NOT", "EOL", "LPAREN", "RPAREN", "LBRACKET", "LABRACKET", 
-                      "RBRACKET", "RABRACKET", "LBRACE", "RBRACE", "PLUS", 
-                      "MINUS", "STAR", "DIV", "MOD", "CARET", "AMP", "AMPAMP", 
-                      "BAR", "BARBAR", "NEG", "TILDE", "ASSIGN", "LSHIFT", 
-                      "RSHIFT", "EQUAL", "NEQUAL", "LEQUAL", "GEQUAL", "PLUSPLUS", 
-                      "MINUSMINUS", "COMMA", "COLON", "SEMI", "DOT", "HASH", 
-                      "V2N", "V4M", "FOR", "ENDFOR", "CMP", "OUT", "GEN", 
-                      "EOP", "WAIT", "JNZ", "IDENTIFIER", "WS", "LINE_COMMENT" ]
+                      "SD", "D_K64", "DINV_K64", "SC", "ID", "REV", "INV", 
+                      "AND", "OR", "XOR", "NOT", "EOL", "LPAREN", "RPAREN", 
+                      "LBRACKET", "LABRACKET", "RBRACKET", "RABRACKET", 
+                      "LBRACE", "RBRACE", "PLUS", "MINUS", "STAR", "DIV", 
+                      "MOD", "CARET", "AMP", "AMPAMP", "BAR", "BARBAR", 
+                      "NEG", "TILDE", "ASSIGN", "LSHIFT", "RSHIFT", "EQUAL", 
+                      "NEQUAL", "LEQUAL", "GEQUAL", "PLUSPLUS", "MINUSMINUS", 
+                      "COMMA", "COLON", "SEMI", "DOT", "HASH", "V2N", "V4M", 
+                      "FOR", "ENDFOR", "CMP", "OUT", "GEN", "EOP", "WAIT", 
+                      "JNZ", "IDENTIFIER", "WS", "LINE_COMMENT" ]
 
     RULE_prog = 0
     RULE_line = 1
@@ -318,62 +319,64 @@ class ASICParser ( Parser ):
     A128D=25
     DINV=26
     SD=27
-    SC=28
-    ID=29
-    REV=30
-    INV=31
-    AND=32
-    OR=33
-    XOR=34
-    NOT=35
-    EOL=36
-    LPAREN=37
-    RPAREN=38
-    LBRACKET=39
-    LABRACKET=40
-    RBRACKET=41
-    RABRACKET=42
-    LBRACE=43
-    RBRACE=44
-    PLUS=45
-    MINUS=46
-    STAR=47
-    DIV=48
-    MOD=49
-    CARET=50
-    AMP=51
-    AMPAMP=52
-    BAR=53
-    BARBAR=54
-    NEG=55
-    TILDE=56
-    ASSIGN=57
-    LSHIFT=58
-    RSHIFT=59
-    EQUAL=60
-    NEQUAL=61
-    LEQUAL=62
-    GEQUAL=63
-    PLUSPLUS=64
-    MINUSMINUS=65
-    COMMA=66
-    COLON=67
-    SEMI=68
-    DOT=69
-    HASH=70
-    V2N=71
-    V4M=72
-    FOR=73
-    ENDFOR=74
-    CMP=75
-    OUT=76
-    GEN=77
-    EOP=78
-    WAIT=79
-    JNZ=80
-    IDENTIFIER=81
-    WS=82
-    LINE_COMMENT=83
+    D_K64=28
+    DINV_K64=29
+    SC=30
+    ID=31
+    REV=32
+    INV=33
+    AND=34
+    OR=35
+    XOR=36
+    NOT=37
+    EOL=38
+    LPAREN=39
+    RPAREN=40
+    LBRACKET=41
+    LABRACKET=42
+    RBRACKET=43
+    RABRACKET=44
+    LBRACE=45
+    RBRACE=46
+    PLUS=47
+    MINUS=48
+    STAR=49
+    DIV=50
+    MOD=51
+    CARET=52
+    AMP=53
+    AMPAMP=54
+    BAR=55
+    BARBAR=56
+    NEG=57
+    TILDE=58
+    ASSIGN=59
+    LSHIFT=60
+    RSHIFT=61
+    EQUAL=62
+    NEQUAL=63
+    LEQUAL=64
+    GEQUAL=65
+    PLUSPLUS=66
+    MINUSMINUS=67
+    COMMA=68
+    COLON=69
+    SEMI=70
+    DOT=71
+    HASH=72
+    V2N=73
+    V4M=74
+    FOR=75
+    ENDFOR=76
+    CMP=77
+    OUT=78
+    GEN=79
+    EOP=80
+    WAIT=81
+    JNZ=82
+    IDENTIFIER=83
+    WS=84
+    LINE_COMMENT=85
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -428,7 +431,7 @@ class ASICParser ( Parser ):
             self.state = 125
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 137442877920) != 0) or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 2047) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 549759738336) != 0) or ((((_la - 73)) & ~0x3f) == 0 and ((1 << (_la - 73)) & 2047) != 0):
                 self.state = 122
                 self.line()
                 self.state = 127
@@ -505,15 +508,15 @@ class ASICParser ( Parser ):
                 self.state = 128
                 self.definition()
                 pass
-            elif token in [5, 6, 7, 8, 13, 14, 15, 16, 17, 37, 71, 72, 75, 76, 77, 78, 79, 80, 81]:
+            elif token in [5, 6, 7, 8, 13, 14, 15, 16, 17, 39, 73, 74, 77, 78, 79, 80, 81, 82, 83]:
                 self.state = 129
                 self.statement()
                 pass
-            elif token in [73]:
+            elif token in [75]:
                 self.state = 130
                 self.forloop()
                 pass
-            elif token in [74]:
+            elif token in [76]:
                 self.state = 131
                 self.endfor()
                 pass
@@ -523,7 +526,7 @@ class ASICParser ( Parser ):
             self.state = 135
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==83:
+            if _la==85:
                 self.state = 134
                 self.comment()
 
@@ -1045,7 +1048,7 @@ class ASICParser ( Parser ):
                 self.state = 168
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==81:
+                if _la==83:
                     self.state = 167
                     self.lbl()
 
@@ -1147,7 +1150,7 @@ class ASICParser ( Parser ):
                 self.state = 186
                 self.sregop()
                 pass
-            elif token in [13, 14, 15, 16, 17, 37, 71, 72, 75, 76, 77, 78, 79, 80]:
+            elif token in [13, 14, 15, 16, 17, 39, 73, 74, 77, 78, 79, 80, 81, 82]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 187
                 self.operator()
@@ -1284,7 +1287,7 @@ class ASICParser ( Parser ):
             self.state = 198
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [1, 2, 3, 4, 37, 45, 46, 55, 56, 81]:
+            if token in [1, 2, 3, 4, 39, 47, 48, 57, 58, 83]:
                 self.state = 196
                 self.expression()
                 pass
@@ -1530,11 +1533,11 @@ class ASICParser ( Parser ):
                 self.state = 211
                 self._errHandler.sync(self)
                 token = self._input.LA(1)
-                if token in [29, 31, 32, 33, 34, 35]:
+                if token in [31, 33, 34, 35, 36, 37]:
                     self.state = 209
                     self.aluop()
                     pass
-                elif token in [22, 23, 24, 25, 26, 27]:
+                elif token in [22, 23, 24, 25, 26, 27, 28, 29]:
                     self.state = 210
                     self.stdop()
                     pass
@@ -1795,12 +1798,12 @@ class ASICParser ( Parser ):
                 self.state = 232
                 self.constant()
                 pass
-            elif token in [81]:
+            elif token in [83]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 233
                 self.define_name()
                 pass
-            elif token in [37]:
+            elif token in [39]:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 234
                 self.match(ASICParser.LPAREN)
@@ -1868,12 +1871,12 @@ class ASICParser ( Parser ):
             self.state = 244
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [1, 2, 3, 4, 37, 81]:
+            if token in [1, 2, 3, 4, 39, 83]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 240
                 self.primary_expression()
                 pass
-            elif token in [45, 46, 55, 56]:
+            elif token in [47, 48, 57, 58]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 241
                 self.unary_operator()
@@ -1940,7 +1943,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 246
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 108191944173158400) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 432767776692633600) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1999,7 +2002,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 248
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 985162418487296) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 3940649673949184) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2066,7 +2069,7 @@ class ASICParser ( Parser ):
             self.state = 256
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 985162418487296) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 3940649673949184) != 0):
                 self.state = 251
                 self.mulop()
                 self.state = 252
@@ -2126,7 +2129,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 259
             _la = self._input.LA(1)
-            if not(_la==45 or _la==46):
+            if not(_la==47 or _la==48):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2259,7 +2262,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 270
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & -4611680520869249024) != 0)):
+            if not(((((_la - 42)) & ~0x3f) == 0 and ((1 << (_la - 42)) & 12582917) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2326,7 +2329,7 @@ class ASICParser ( Parser ):
             self.state = 278
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & -4611680520869249024) != 0):
+            while ((((_la - 42)) & ~0x3f) == 0 and ((1 << (_la - 42)) & 12582917) != 0):
                 self.state = 273
                 self.relop()
                 self.state = 274
@@ -2386,7 +2389,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 281
             _la = self._input.LA(1)
-            if not(_la==60 or _la==61):
+            if not(_la==62 or _la==63):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2453,7 +2456,7 @@ class ASICParser ( Parser ):
             self.state = 289
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==60 or _la==61:
+            while _la==62 or _la==63:
                 self.state = 284
                 self.eqop()
                 self.state = 285
@@ -2523,7 +2526,7 @@ class ASICParser ( Parser ):
             self.state = 297
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==51:
+            while _la==53:
                 self.state = 293
                 self.match(ASICParser.AMP)
                 self.state = 294
@@ -2593,7 +2596,7 @@ class ASICParser ( Parser ):
             self.state = 305
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==50:
+            while _la==52:
                 self.state = 301
                 self.match(ASICParser.CARET)
                 self.state = 302
@@ -2663,7 +2666,7 @@ class ASICParser ( Parser ):
             self.state = 313
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==53:
+            while _la==55:
                 self.state = 309
                 self.match(ASICParser.BAR)
                 self.state = 310
@@ -2733,7 +2736,7 @@ class ASICParser ( Parser ):
             self.state = 321
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==52:
+            while _la==54:
                 self.state = 317
                 self.match(ASICParser.AMPAMP)
                 self.state = 318
@@ -2803,7 +2806,7 @@ class ASICParser ( Parser ):
             self.state = 329
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==54:
+            while _la==56:
                 self.state = 325
                 self.match(ASICParser.BARBAR)
                 self.state = 326
@@ -3001,7 +3004,7 @@ class ASICParser ( Parser ):
             self.state = 346
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==45:
+            while _la==47:
                 self.state = 342
                 self.match(ASICParser.PLUS)
                 self.state = 343
@@ -3062,12 +3065,12 @@ class ASICParser ( Parser ):
             self.state = 351
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [5, 13, 14, 15, 16, 17, 30]:
+            if token in [5, 13, 14, 15, 16, 17, 32]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 349
                 self.conf_d()
                 pass
-            elif token in [28, 81]:
+            elif token in [30, 83]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 350
                 self.conf_c()
@@ -3149,7 +3152,7 @@ class ASICParser ( Parser ):
                 self.state = 353
                 self.vreg()
                 pass
-            elif token in [5, 30]:
+            elif token in [5, 32]:
                 self.state = 354
                 self.vreg_r()
                 pass
@@ -3159,7 +3162,7 @@ class ASICParser ( Parser ):
             self.state = 361
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==43:
+            if _la==45:
                 self.state = 357
                 self.match(ASICParser.LBRACE)
                 self.state = 358
@@ -3171,7 +3174,7 @@ class ASICParser ( Parser ):
             self.state = 365
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==58:
+            if _la==60:
                 self.state = 363
                 self.match(ASICParser.LSHIFT)
                 self.state = 364
@@ -3230,12 +3233,12 @@ class ASICParser ( Parser ):
             self.state = 369
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [81]:
+            if token in [83]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 367
                 self.const_name()
                 pass
-            elif token in [28]:
+            elif token in [30]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 368
                 self.const_expr()
@@ -3308,7 +3311,7 @@ class ASICParser ( Parser ):
             self.state = 375
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [1, 2, 3, 4, 37, 45, 46, 55, 56, 81]:
+            if token in [1, 2, 3, 4, 39, 47, 48, 57, 58, 83]:
                 self.state = 372
                 self.expression()
                 pass
@@ -3437,7 +3440,7 @@ class ASICParser ( Parser ):
             self.state = 384
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==39:
+            if _la==41:
                 self.state = 383
                 self.const_addr()
 
@@ -3445,7 +3448,7 @@ class ASICParser ( Parser ):
             self.state = 387
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==58:
+            if _la==60:
                 self.state = 386
                 self.const_shift()
 
@@ -3507,7 +3510,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 389
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 527765581332480) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 2111062325329920) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -3800,12 +3803,12 @@ class ASICParser ( Parser ):
             self.state = 416
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [13, 14, 15, 16, 17, 71, 72, 75, 76]:
+            if token in [13, 14, 15, 16, 17, 73, 74, 77, 78]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 405
                 self.output()
                 pass
-            elif token in [37]:
+            elif token in [39]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 406
                 self.match(ASICParser.LPAREN)
@@ -3822,7 +3825,7 @@ class ASICParser ( Parser ):
                     self.state = 412 
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-                    if not (_la==66):
+                    if not (_la==68):
                         break
 
                 self.state = 414
@@ -4143,7 +4146,7 @@ class ASICParser ( Parser ):
                 self.state = 426
                 self.match(ASICParser.R0)
                 pass
-            elif token in [30]:
+            elif token in [32]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 427
                 self.match(ASICParser.REV)
@@ -4208,7 +4211,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 433
             _la = self._input.LA(1)
-            if not(_la==71 or _la==72):
+            if not(_la==73 or _la==74):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4276,17 +4279,17 @@ class ASICParser ( Parser ):
                 self.state = 435
                 self.vreg()
                 pass
-            elif token in [71, 72]:
+            elif token in [73, 74]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 436
                 self.vreg_special()
                 pass
-            elif token in [75]:
+            elif token in [77]:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 437
                 self.match(ASICParser.CMP)
                 pass
-            elif token in [76]:
+            elif token in [78]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 438
                 self.match(ASICParser.OUT)
@@ -4328,6 +4331,12 @@ class ASICParser ( Parser ):
         def DINV(self):
             return self.getToken(ASICParser.DINV, 0)
 
+        def D_K64(self):
+            return self.getToken(ASICParser.D_K64, 0)
+
+        def DINV_K64(self):
+            return self.getToken(ASICParser.DINV_K64, 0)
+
         def getRuleIndex(self):
             return ASICParser.RULE_stdop
 
@@ -4357,7 +4366,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 441
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 264241152) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 1069547520) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4425,7 +4434,7 @@ class ASICParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 443
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 67108864000) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 268435456000) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -4497,17 +4506,17 @@ class ASICParser ( Parser ):
             self.state = 453
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [77]:
+            if token in [79]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 445
                 self.match(ASICParser.GEN)
                 pass
-            elif token in [78]:
+            elif token in [80]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 446
                 self.match(ASICParser.EOP)
                 pass
-            elif token in [79]:
+            elif token in [81]:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 447
                 self.match(ASICParser.WAIT)
@@ -4518,7 +4527,7 @@ class ASICParser ( Parser ):
                 self.state = 450
                 self.match(ASICParser.RPAREN)
                 pass
-            elif token in [80]:
+            elif token in [82]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 452
                 self.jump()
