@@ -20,6 +20,7 @@ class ASICAssembler:
         self.defines: dict[str, ASICParser.ExpressionContext] = {}
         self.constant_contexts: dict[str, ASICParser.Const_exprContext] = {}
         self.code_generator = None
+        self.error_listener = AssemblerErrorListener()
 
     def parse(self) -> ParseTree:
         """Первый этап: лексический и синтаксический анализ"""
@@ -30,11 +31,11 @@ class ASICAssembler:
 
         # Настройка обработчика ошибок
         self.parser.removeErrorListeners()
-        error_listener = AssemblerErrorListener()
-        self.parser.addErrorListener(error_listener)
+        self.parser.addErrorListener(self.error_listener)
 
         # Парсинг
         self.tree = self.parser.prog()
+        self.error_listener.raise_errors()
 
         if self.has_errors:
             print("Syntax errors found in the code.")

@@ -40,8 +40,8 @@ class ASICCompilerTest(unittest.TestCase):
         assembler = self.assemble_code(filename)
 
         self.assertFalse(assembler.has_errors, "Найдены синтаксические ошибки")
-        self.assertEqual(len(assembler.labels), 0, "Найдены метки")
-        self.assertEqual(len(assembler.configs), 0, "Найдены конфигурации")
+        self.assertEqual(len(assembler.labels), 0, "Найдены лишние метки")
+        self.assertEqual(len(assembler.configs), 0, "Найдены лишние конфигурации")
 
         hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertIsNotNone(hex_code)
@@ -165,7 +165,9 @@ class ASICCompilerTest(unittest.TestCase):
         test_dir = "syntax_errors"
         test_cases = [
             ("test_error_unknown_operator.txt", AssemblerSyntaxError,
-             "Syntax error: no viable alternative at input 'r1!='"),
+             """Found the following syntax errors:
+Line 1, Column 3: no viable alternative at input 'r1!='
+"""),
             ("test_error_no_config.txt", AssemblerUndefinedError,
              "Undefined identifier: 'conf_1'"),
             ("test_error_constant.txt", BitValueError,
