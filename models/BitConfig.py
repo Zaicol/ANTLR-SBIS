@@ -1,6 +1,6 @@
 from models.BitInstruction import BitInstruction
 from models.Constant import Constant
-from models.enums.ConfigEnums import InputName
+from models.enums.ConfigEnums import InputName, InputSpace
 
 
 class BitConfig(BitInstruction):
@@ -40,6 +40,53 @@ class BitConfig(BitInstruction):
     REV_REG = 120
     REV_TXT = 121
 
+    spaces_params = {
+        InputSpace.A1: {
+            "regs": {
+                InputName.V1: 0,
+                InputName.V2: 1,
+                InputName.V3: 2,
+                InputName.V4: 3
+            },
+            "mux": A1,
+            "trunc": TR_R1,
+            "shift": SH_R1
+        },
+        InputSpace.A2: {
+            "regs": {
+                InputName.V1: 0,
+                InputName.V2: 1,
+                InputName.V3: 2,
+                InputName.V4: 3
+            },
+            "mux": A2,
+            "trunc": TR_R2,
+            "shift": SH_R2
+        },
+        InputSpace.A3: {
+            "regs": {
+                InputName.V1H: 0,
+                InputName.V2: 1,
+                InputName.V3: 2,
+                InputName.V4: 3
+            },
+            "mux": A3,
+            "trunc": TR_R3,
+            "shift": SH_R3
+        },
+        InputSpace.A4: {
+            "regs": {
+                InputName.V1: 0,
+                InputName.V2: 1,
+                InputName.V3: 2,
+                InputName.R0: 3
+            },
+            "mux": A4,
+            "trunc": TR_R4,
+            "shift": SH_R4
+        }
+    }
+
     def __init__(self, bits: str = None, source_line: int = 0):
         super().__init__()
         self.len = 128
@@ -50,7 +97,7 @@ class BitConfig(BitInstruction):
             self.bits = list(bits)
         self.constant_index = 0
         self.is_const3_set = False
-        self.free_spaces = [1, 2, 3, 4]
+        self.free_spaces = [InputSpace.A1, InputSpace.A2, InputSpace.A3, InputSpace.A4]
         self.source_line = source_line
 
     def to_hex_str(self, prefix=True, split_bytes=False):
@@ -123,56 +170,38 @@ class BitConfig(BitInstruction):
                 raise ValueError(f"Too many constants: {self.constant_index + 1}")
         self.constant_index += 1
 
-    def set_a_input(self, space: int, reg_number: int, shift_value: int = None, significant_count: int = None):
-        match space:
-            case 1:
-                mux_param = self.A1
-                trunc_param = self.TR_R1
-                shift_param = self.SH_R1
-            case 2:
-                mux_param = self.A2
-                trunc_param = self.TR_R2
-                shift_param = self.SH_R2
-            case 3:
-                mux_param = self.A3
-                trunc_param = self.TR_R3
-                shift_param = self.SH_R3
-            case 4:
-                mux_param = self.A4
-                trunc_param = self.TR_R4
-                shift_param = self.SH_R4
-            case _:
-                raise ValueError(f"Invalid space: {space}")
+    def set_a_input(self, space: InputSpace, reg_name: InputName, shift_value: int = None, significant_count: int = None):
+        space_params = self.spaces_params[space]
 
-        self[mux_param] = reg_number
+        self[space_params["mux"]] = space_params["regs"][reg_name]
         if significant_count is not None:
-            self[trunc_param] = significant_count
+            self[space_params["trunc"]] = significant_count
         if shift_value is not None:
-            self[shift_param] = shift_value
+            self[space_params["shift"]] = shift_value
 
     def set_input(self, reg_name: InputName, shift_value: int = None, significant_count: int = 32):
         # Определяем, куда вместится вход
         fit_space = []
         match reg_name:
             case InputName.V1:
-                fit_space = [2, 1, 4]
+                fit_space = [InputSpace.A2, InputSpace.A1, InputSpace.A4]
             case InputName.V1H:
-                fit_space = [3]
+                fit_space = [InputSpace.A3]
             case InputName.V2:
-                fit_space = [1, 2, 3, 4]
+                fit_space = [InputSpace.A1, InputSpace.A2, InputSpace.A3, InputSpace.A4]
             case InputName.V3:
-                fit_space = [1, 2, 3, 4]
+                fit_space = [InputSpace.A1, InputSpace.A2, InputSpace.A3, InputSpace.A4]
             case InputName.V4:
-                fit_space = [1, 2, 3]
+                fit_space = [InputSpace.A1, InputSpace.A2, InputSpace.A3]
             case InputName.R0:
-                fit_space = [4]
+                fit_space = [InputSpace.A4]
 
         found_space = set(self.free_spaces).intersection(fit_space)
         if len(found_space) == 0:
             raise ValueError(f"No free space for input {reg_name}")
         chosen_space = list(found_space)[0]
         self.free_spaces.remove(chosen_space)
-        self.set_a_input(chosen_space, 0, shift_value, significant_count)
+        self.set_a_input(chosen_space, reg_name, shift_value, significant_count)
 
     def set_rev_reg(self):
         self[self.REV_REG] = True

@@ -8,7 +8,7 @@ from models.exceptions.BitValueError import BitValueError
 from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
 
 
-class ASICCompilerTest(unittest.TestCase):
+class ASICAssemblerTest(unittest.TestCase):
 
     test_dir = "test_files"
     test_data_dir = "assembler_data"
@@ -57,7 +57,6 @@ class ASICCompilerTest(unittest.TestCase):
 
         hex_code = assembler.code_generator.get_full_code_hex_str()
         binary_code = assembler.code_generator.get_full_code_binary_str()
-        print(binary_code)
 
         self.assertIsNotNone(hex_code)
         self.assertIsNotNone(binary_code)
@@ -92,7 +91,7 @@ class ASICCompilerTest(unittest.TestCase):
         configs = assembler.configs
 
         self.assertFalse(assembler.has_errors)
-        self.assertEqual(len(configs), 2, "Получено не 2 конфигурации")
+        self.assertEqual(len(configs), 3, "Получено не 2 конфигурации")
         self.assertIn('conf_0', configs, "Должна присутствовать конфигурация conf_0")
         self.assertIn('conf_1', configs, "Должна присутствовать конфигурация conf_1")
         config_indices = list(configs.values())
@@ -102,6 +101,9 @@ class ASICCompilerTest(unittest.TestCase):
         hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertIn("#conf", hex_code, "В программе нет конфигураций")
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
+
+        binary_code = assembler.code_generator.get_full_code_binary_str()
+        print(binary_code)
 
     def test_wait(self):
         """Тест различных значений wait"""
@@ -186,7 +188,7 @@ Line 1, Column 3: no viable alternative at input 'r1!='
 def run_tests():
     """Запуск всех тестов"""
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(ASICCompilerTest)
+    suite = loader.loadTestsFromTestCase(ASICAssemblerTest)
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

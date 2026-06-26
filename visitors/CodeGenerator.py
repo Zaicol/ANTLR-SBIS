@@ -29,7 +29,7 @@ class CodeGenerator(ASICParserVisitor):
     def __init__(self, labels: dict[str, Label], configs: dict[str, int],
                  defines: dict[str, ASICParser.ExpressionContext],
                  constant_contexts: dict[str, ASICParser.Const_exprContext]):
-        self.expr_evaluator = ExpressionEvaluator(defines, self.current_source_line, labels)
+        self.expr_evaluator = ExpressionEvaluator(defines, labels)
 
         self.labels = labels
         self.configs = configs
@@ -117,7 +117,7 @@ class CodeGenerator(ASICParserVisitor):
         return
 
     def visitExpression(self, ctx: ASICParser.ExpressionContext):
-        value: int = self.expr_evaluator.visit_line(ctx, self.current_source_line)
+        value: int = self.expr_evaluator.visit_line(ctx)
         self.get_current_instruction().set_expression_value(value)
         return self.expr_evaluator.visit(ctx)
 
@@ -200,7 +200,7 @@ class CodeGenerator(ASICParserVisitor):
         if ctx.const_addr():
             addr_ctx: ASICParser.Const_addrContext = ctx.const_addr()
             if addr_ctx.expression():
-                constant.set_address(self.calc_expr(ctx.const_addr().expression()))
+                constant.set_address(self.calc_expr(ctx.const_addr().expression(), 7))
             elif addr_ctx.sreg():
                 constant.set_reg(self.visit(addr_ctx.sreg()))
             elif addr_ctx.vreg_d():
@@ -234,8 +234,8 @@ class CodeGenerator(ASICParserVisitor):
         if ctx.vreg():
             reg_name = InputName[ctx.vreg().getText().upper()]
         elif ctx.vreg_r():
-            if ctx.vreg_r().REV():
-                # Если вход - rev(r0), то устанавливается соответствующий флаг
+            if ctx.vreg_r().REV_REG():
+                # Если вход - rev_reg(r0), то устанавливается соответствующий флаг
                 self.config_code[-1].set_rev_reg()
             reg_name = InputName.R0
             significant_count = 64
@@ -244,14 +244,14 @@ class CodeGenerator(ASICParserVisitor):
 
         if len(ctx.expression()) == 2:
             # input{significant_count} << shift
-            significant_count = int(ctx.expression()[0].getText())
-            shift_value = int(ctx.expression()[1].getText())
+            significant_count = self.calc_expr(ctx.expression(0))
+            shift_value = self.calc_expr(ctx.expression(1))
         elif ctx.LSHIFT():
             # input << shift
-            shift_value = int(ctx.expression()[0].getText())
+            shift_value = self.calc_expr(ctx.expression(0))
         elif len(ctx.expression()) > 0:
             # input{significant_count}
-            significant_count = int(ctx.expression()[0].getText())
+            significant_count = self.calc_expr(ctx.expression(0))
 
         # Вызываем метод BitConfig.set_input, который устанавливает нужные значения в подходящих позициях
         self.config_code[-1].set_input(reg_name, shift_value, significant_count)
@@ -405,4 +405,4 @@ class CodeGenerator(ASICParserVisitor):
         return self.machine_code[-1]
 
     def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:
-        return self.expr_evaluator.visit_line(ctx, self.current_source_line, max_size_in_bits)
+        return self.expr_evaluator.visit_line(ctx, max_size_in_bits)

@@ -80,6 +80,7 @@ SC: C;
 
 ID : I D ;
 REV : R E V ;
+REV_REG : R E V '_' R E G;
 INV : I N V ;
 AND : A N D ;
 OR : O R ;

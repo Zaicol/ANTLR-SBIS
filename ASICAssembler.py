@@ -37,11 +37,6 @@ class ASICAssembler:
         self.tree = self.parser.prog()
         self.error_listener.raise_errors()
 
-        if self.has_errors:
-            print("Syntax errors found in the code.")
-        else:
-            print("No syntax errors found.")
-
         return self.tree
 
     def first_pass(self) -> FirstPassVisitor:

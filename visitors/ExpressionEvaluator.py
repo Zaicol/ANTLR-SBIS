@@ -14,19 +14,21 @@ class ExpressionEvaluator(ASICParserVisitor):
     labels: dict[str, Label]
     source_line: int
 
-    def __init__(self, defines, line, labels=None):
+    def __init__(self, defines, labels=None):
         self.defines = {}
         self.labels = labels
         for name, define in defines.items():
             self.defines[name] = self.visit(define)
-        self.source_line = line
+        self.source_line = 0
 
-    def visit_line(self, ctx, line, max_size_in_bits: int = 8) -> int:
-        self.source_line = line
+    def visit_line(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:
+        self.source_line = ctx.start.line
         res = super().visit(ctx)
+        column: int = ctx.start.column
         max_size = (2 ** max_size_in_bits) - 1
         if not (0 <= res <= max_size):
-            raise BitValueError(f"Expression value {res} out of range [0, {max_size}]", line)
+            raise BitValueError(f"Expression value {res} out of range [0, {max_size}]",
+                                self.source_line, column)
 
         return res
 
@@ -55,7 +57,8 @@ class ExpressionEvaluator(ASICParserVisitor):
         if oper == '!':
             return not value
 
-        raise AssemblerSyntaxError(f"Unknown unary operator: {oper}", self.source_line)
+        column: int = ctx.start.column
+        raise AssemblerSyntaxError(f"Unknown unary operator: {oper}", self.source_line, column)
 
     def visitMultiplicative_expression(self, ctx: ASICParser.Multiplicative_expressionContext):
         result = self.visit(ctx.unary_expression(0))
@@ -95,9 +98,11 @@ class ExpressionEvaluator(ASICParserVisitor):
                 result -= right
 
             else:
+                column: int = ctx.start.column
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.source_line
+                    self.source_line,
+                    column
                 )
 
         return result
@@ -122,9 +127,11 @@ class ExpressionEvaluator(ASICParserVisitor):
                 result = int(result >= right)
 
             else:
+                column: int = ctx.start.column
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.source_line
+                    self.source_line,
+                    column
                 )
 
         return result
@@ -143,9 +150,11 @@ class ExpressionEvaluator(ASICParserVisitor):
                 result = int(result != right)
 
             else:
+                column: int = ctx.start.column
                 raise AssemblerSyntaxError(
                     f"Unknown operator: {oper}",
-                    self.source_line
+                    self.source_line,
+                    column
                 )
 
         return result
@@ -203,54 +212,13 @@ class ExpressionEvaluator(ASICParserVisitor):
             try:
                 return int(self.defines[ctx.getText()])
             except ValueError:
-                raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.source_line)
+                raise AssemblerSyntaxError("Not-integer define: " + ctx.getText(), self.source_line, ctx.start.column)
         if self.labels is not None and ctx.getText() in self.labels:
             try:
                 return self.labels[ctx.getText()].source_line
             except ValueError:
-                raise AssemblerSyntaxError("Not-integer label: " + ctx.getText(), self.source_line)
-        raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line)
-
-    # def visitConstant(self, ctx: ASICParser.ConstantContext):
-    #     token = ctx.getChild(0).getSymbol()
-    #     token_type = token.type
-    #     text = ctx.getText()
-    #     text_up = text.upper()
-    #
-    #     if token_type == ASICLexer.HEXADECIMAL:
-    #         if text_up.endswith('H'):
-    #             num_part = text[:-1]
-    #         else:  # начинается с 0x или 0X
-    #             num_part = text[2:]
-    #         value = int(num_part, 16)
-    #
-    #     elif token_type == ASICLexer.BINARY:
-    #         if text_up.endswith('B'):
-    #             num_part = text[:-1]
-    #         else:  # начинается с 0b или 0B
-    #             num_part = text[2:]
-    #         value = int(num_part, 2)
-    #
-    #     elif token_type == ASICLexer.OCTAL:
-    #         if text_up.endswith('O'):
-    #             num_part = text[:-1]
-    #         else:  # начинается с 0o или 0O
-    #             num_part = text[2:]
-    #         value = int(num_part, 8)
-    #
-    #     elif token_type == ASICLexer.DECIMAL:
-    #         if text_up.endswith('D'):
-    #             num_part = text[:-1]
-    #         elif text_up.startswith('0D'):
-    #             num_part = text[2:]
-    #         else:
-    #             num_part = text
-    #         value = int(num_part, 10)
-    #
-    #     else:
-    #         raise AssemblerError(f"Unknown constant: {text}")
-    #
-    #     return value
+                raise AssemblerSyntaxError("Couldn't find label: " + ctx.getText(), self.source_line, ctx.start.column)
+        raise AssemblerSyntaxError("Unknown define: " + ctx.getText(), self.source_line, ctx.start.column)
 
     def visitConstant(self, ctx: ASICParser.ConstantContext):
         token = ctx.getChild(0).getSymbol()
@@ -266,7 +234,7 @@ class ExpressionEvaluator(ASICParserVisitor):
 
         rule = rules.get(token.type)
         if not rule:
-            raise AssemblerError(f"Unknown constant: {text}")
+            raise AssemblerError(f"Unknown constant: {text}", self.source_line, ctx.start.column)
 
         base, prefix, suffix = rule
         t = text.upper()

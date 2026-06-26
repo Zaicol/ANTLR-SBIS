@@ -159,7 +159,7 @@ vreg: V1 | V1H | V2 | V3 | V4;
 
 vreg_d: V1 | V2 | V3 | V4;
 
-vreg_r: R0 | REV LPAREN R0 RPAREN;
+vreg_r: R0 | REV_REG LPAREN R0 RPAREN;
 
 vreg_special: V2N | V4M;
 
