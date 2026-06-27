@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 
-class BitInstruction:
+class MachineInstruction:
     len: int = 32
 
     def __init__(self, source_line: int = 0):

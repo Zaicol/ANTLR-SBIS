@@ -1,9 +1,9 @@
 from models.Label import Label
 from models.enums.InstructionEnums import *
-from models.BitInstruction import BitInstruction
+from models.MachineInstruction import MachineInstruction
 
 
-class BitCommand(BitInstruction):
+class ProgInstruction(MachineInstruction):
 
     START_GEN = 0
     WROUT = 1
@@ -206,7 +206,7 @@ class BitCommand(BitInstruction):
     def is_passive_standard(self):
         return not self.is_active() and self.is_standard()
 
-    def check_same_instructions(self, other: 'BitCommand'):
+    def check_same_instructions(self, other: 'ProgInstruction'):
         return self[self.CONTROL_FIELDS] == other[self.CONTROL_FIELDS]
 
     def has_v4_in_outputs(self) -> bool:

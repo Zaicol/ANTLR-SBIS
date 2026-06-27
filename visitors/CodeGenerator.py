@@ -3,9 +3,9 @@ from typing import Any
 
 from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
-from models.BitCommand import BitCommand
-from models.BitInstruction import BitInstruction
-from models.BitConfig import BitConfig
+from models.ProgInstruction import ProgInstruction
+from models.MachineInstruction import MachineInstruction
+from models.ConfigInstruction import ConfigInstruction
 from models.Constant import Constant
 from models.Label import Label
 from models.LastInstruction import LastInstruction
@@ -20,8 +20,8 @@ class CodeGenerator(ASICParserVisitor):
     configs: dict[str, int] = {}  # Конфигурации и их индексы
     defines: dict[str, Any] = {}  # Макросы и их значения
     constants: dict[str, Constant] = {}
-    config_code: list[BitConfig] = []  # Список конфигураций (128 бит)
-    machine_code: list[BitCommand] = []  # Список инструкций (32 бита)
+    config_code: list[ConfigInstruction] = []  # Список конфигураций (128 бит)
+    machine_code: list[ProgInstruction] = []  # Список инструкций (32 бита)
     for_loops: list[str] = []  # Список циклов
     expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
@@ -48,7 +48,7 @@ class CodeGenerator(ASICParserVisitor):
             self.constants[name] = self.visit(const)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.machine_code.append(BitCommand(source_line=ctx.start.line))
+        self.machine_code.append(ProgInstruction(source_line=ctx.start.line))
         self.visitChildren(ctx)
         self.check_latencies()
 
@@ -182,7 +182,7 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitConfig_def(self, ctx: ASICParser.Config_defContext):
-        self.config_code.append(BitConfig(source_line=ctx.start.line))
+        self.config_code.append(ConfigInstruction(source_line=ctx.start.line))
         return self.visitChildren(ctx)
 
     def visitVreg_d(self, ctx: ASICParser.Vreg_dContext):
@@ -256,7 +256,7 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitArgument(self, ctx: ASICParser.ArgumentContext):
         if ctx.configuration():
-            self.config_code.append(BitConfig(source_line=ctx.start.line))
+            self.config_code.append(ConfigInstruction(source_line=ctx.start.line))
             self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
@@ -274,7 +274,7 @@ class CodeGenerator(ASICParserVisitor):
         self.check_wrout_latency(instr, instr_idx)
         self.check_wait_latency(instr)
 
-    def check_active_standard_latency(self, instr: BitCommand, instr_idx: int):
+    def check_active_standard_latency(self, instr: ProgInstruction, instr_idx: int):
         if not instr.is_active_standard():
             return
 
@@ -304,7 +304,7 @@ class CodeGenerator(ASICParserVisitor):
         if has_v4:
             self.last_v4_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
-    def check_passive_standard_latency(self, instr: BitCommand, instr_idx: int):
+    def check_passive_standard_latency(self, instr: ProgInstruction, instr_idx: int):
         if not instr.is_passive_standard():
             return
 
@@ -322,7 +322,7 @@ class CodeGenerator(ASICParserVisitor):
 
         self.last_passive_standard_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
-    def check_wrout_latency(self, instr: BitCommand, instr_idx: int):
+    def check_wrout_latency(self, instr: ProgInstruction, instr_idx: int):
         if not instr.is_wrout():
             return
 
@@ -339,7 +339,7 @@ class CodeGenerator(ASICParserVisitor):
 
         self.last_wrout_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
-    def check_wait_latency(self, instr: BitCommand):
+    def check_wait_latency(self, instr: ProgInstruction):
         if not (cycles := instr.get_wait()):
             return
 
@@ -390,10 +390,10 @@ class CodeGenerator(ASICParserVisitor):
 
     # ====== Методы для вывода кода ======
 
-    def get_machine_code(self) -> list[BitInstruction]:
+    def get_machine_code(self) -> list[MachineInstruction]:
         return self.machine_code
 
-    def get_config_code(self) -> list[BitConfig]:
+    def get_config_code(self) -> list[ConfigInstruction]:
         return self.config_code
 
     def get_full_code_hex(self, prefix=False,
@@ -438,7 +438,7 @@ class CodeGenerator(ASICParserVisitor):
         code = self.get_full_code_binary(prefix, show_source_line)
         return "\n".join(code)
 
-    def get_current_instruction(self) -> BitCommand | None:
+    def get_current_instruction(self) -> ProgInstruction | None:
         if len(self.machine_code) == 0:
             return None
         return self.machine_code[-1]

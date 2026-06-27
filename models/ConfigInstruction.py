@@ -1,9 +1,9 @@
-from models.BitInstruction import BitInstruction
+from models.MachineInstruction import MachineInstruction
 from models.Constant import Constant
 from models.enums.ConfigEnums import InputName, InputSpace
 
 
-class BitConfig(BitInstruction):
+class ConfigInstruction(MachineInstruction):
     # Адреса аргументов
     # Аргументы для MUX
     A1 = slice(1, 0, -1)

@@ -1,8 +1,8 @@
-from models.BitCommand import BitCommand
+from models.ProgInstruction import ProgInstruction
 
 
 class LastInstruction:
-    def __init__(self, idx: int, instruction: BitCommand):
+    def __init__(self, idx: int, instruction: ProgInstruction):
         self.idx = idx
         self.instruction = instruction
         self.cycles_since = 0
@@ -13,7 +13,7 @@ class LastInstruction:
     def get_index(self) -> int:
         return self.idx
 
-    def get_instruction(self) -> BitCommand:
+    def get_instruction(self) -> ProgInstruction:
         return self.instruction
 
     def get_cycles_since(self) -> int:
