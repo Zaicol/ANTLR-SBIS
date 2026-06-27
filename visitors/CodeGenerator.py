@@ -47,14 +47,14 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitAsignment(self, ctx: ASICParser.AsignmentContext):
         if ctx.arg():
-            self.get_current_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
+            self.get_current_prog_instruction().set_service_operation_type(ServiceType.REG_ASSIGN)
             arg_num = self.visit(ctx.arg())
-            self.get_current_instruction().set_arg_num(arg_num)
+            self.get_current_prog_instruction().set_arg_num(arg_num)
         elif ctx.expression():
-            self.get_current_instruction().set_service_operation_type(ServiceType.REG_INIT)
+            self.get_current_prog_instruction().set_service_operation_type(ServiceType.REG_INIT)
             expr_value = self.calc_expr(ctx.expression(), 24)
-            self.get_current_instruction().set_reg_init_value(expr_value)
-        self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
+            self.get_current_prog_instruction().set_reg_init_value(expr_value)
+        self.get_current_prog_instruction().set_service_reg(self.visit(ctx.sreg()))
         return
 
     def visitArg(self, ctx: ASICParser.ArgContext):
@@ -64,60 +64,60 @@ class CodeGenerator(ASICParserVisitor):
         return arg_num
 
     def visitSregop(self, ctx: ASICParser.SregopContext):
-        self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
+        self.get_current_prog_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
     def visitAluSpOp(self, ctx: ASICParser.AluSpOpContext):
         # Стандартная команда
-        self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
+        self.get_current_prog_instruction().set_operation_type(InstructionType.STANDARD)
         return self.visitChildren(ctx)
 
     def visitGenOp(self, ctx: ASICParser.GenOpContext):
         # v1 = gen
-        self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
-        self.get_current_instruction().set_start_gen()
+        self.get_current_prog_instruction().set_operation_type(InstructionType.STANDARD)
+        self.get_current_prog_instruction().set_start_gen()
         return
 
     def visitSpCop(self, ctx: ASICParser.SpCopContext):
-        self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
+        self.get_current_prog_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
     def visitEop(self, ctx: ASICParser.EopContext):
         # eop
-        self.get_current_instruction().set_eop()
+        self.get_current_prog_instruction().set_eop()
         return
 
     def visitWait(self, ctx: ASICParser.WaitContext):
         # wait(expression)
-        self.get_current_instruction().set_wait()
+        self.get_current_prog_instruction().set_wait()
         return self.visitChildren(ctx)
 
     def visitJump(self, ctx: ASICParser.JumpContext):
         # jnz(sreg, label)
-        self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
-        self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
+        self.get_current_prog_instruction().set_service_operation_type(ServiceType.JNZ)
+        self.get_current_prog_instruction().set_service_reg(self.visit(ctx.sreg()))
         label_name = ctx.label().getText()
         label = self.labels.get(label_name, None)
         if label is None:
             raise_undefined_error(identifier=label_name, ctx=ctx)
-        self.get_current_instruction().set_label_addr(label.address)
-        self.get_current_instruction().set_jump_label(label)
+        self.get_current_prog_instruction().set_label_addr(label.address)
+        self.get_current_prog_instruction().set_jump_label(label)
         return
 
     def visitExpression(self, ctx: ASICParser.ExpressionContext):
         value: int = self.expr_evaluator.visit_line(ctx)
-        self.get_current_instruction().set_expression_value(value)
+        self.get_current_prog_instruction().set_expression_value(value)
         return self.expr_evaluator.visit(ctx)
 
     def visitArith(self, ctx: ASICParser.ArithContext):
         # r0++
-        self.get_current_instruction().set_service_operation_type(ServiceType.INC_DEC)
+        self.get_current_prog_instruction().set_service_operation_type(ServiceType.INC_DEC)
         if ctx.MINUSMINUS():
-            self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
-            self.get_current_instruction().set_decrement()
+            self.get_current_prog_instruction().set_service_reg(self.visit(ctx.sreg()))
+            self.get_current_prog_instruction().set_decrement()
         elif ctx.PLUSPLUS():
-            self.get_current_instruction().set_service_reg(ServiceRegister.R0)
-            self.get_current_instruction().set_increment()
+            self.get_current_prog_instruction().set_service_reg(ServiceRegister.R0)
+            self.get_current_prog_instruction().set_increment()
 
     def visitResultexpr(self, ctx: ASICParser.ResultexprContext):
         outputs: list[ASICParser.OutputContext] = ctx.output()
@@ -128,7 +128,7 @@ class CodeGenerator(ASICParserVisitor):
                 output_places.append(place)
         if len(output_places) > 5:
             raise_syntax_error(f"Too many outputs ({len(output_places)} > 5)", ctx)
-        self.get_current_instruction().set_output(output_places)
+        self.get_current_prog_instruction().set_output(output_places)
         return
 
     def visitOutput(self, ctx: ASICParser.OutputContext) -> OutputPlaces | None:
@@ -139,7 +139,7 @@ class CodeGenerator(ASICParserVisitor):
             raise ValueError(f"Неподдерживаемый выход: {ctx_text}")
 
     def visitResultout(self, ctx: ASICParser.ResultoutContext):
-        self.get_current_instruction().set_wrout()
+        self.get_current_prog_instruction().set_wrout()
         return
 
     def visitStdop(self, ctx: ASICParser.StdopContext):
@@ -148,7 +148,7 @@ class CodeGenerator(ASICParserVisitor):
             sp_type = SPType[ctx_text.upper()]
         except KeyError:
             raise ValueError(f"Неподдерживаемый spop: {ctx_text}")
-        self.get_current_instruction().set_sp_op(sp_type)
+        self.get_current_prog_instruction().set_sp_op(sp_type)
         return self.visitChildren(ctx)
 
     def visitAluop(self, ctx: ASICParser.AluopContext):
@@ -157,7 +157,7 @@ class CodeGenerator(ASICParserVisitor):
             alu_type = ALUType[ctx_text.upper()]
         except KeyError:
             raise ValueError(f"Неподдерживаемый aluop: {ctx_text}")
-        self.get_current_instruction().set_alu_op(alu_type)
+        self.get_current_prog_instruction().set_alu_op(alu_type)
         return self.visitChildren(ctx)
 
     def visitConfig_name(self, ctx: ASICParser.Config_nameContext):
@@ -165,7 +165,7 @@ class CodeGenerator(ASICParserVisitor):
             config_name = ctx.getText()
             if config_name not in self.configs:
                 raise_undefined_error(identifier=config_name, ctx=ctx)
-            self.get_current_instruction().set_config_addr(self.configs[config_name])
+            self.get_current_prog_instruction().set_config_addr(self.configs[config_name])
         return self.visitChildren(ctx)
 
     def visitConfig_def(self, ctx: ASICParser.Config_defContext):
@@ -244,7 +244,7 @@ class CodeGenerator(ASICParserVisitor):
     def visitArgument(self, ctx: ASICParser.ArgumentContext):
         if ctx.configuration():
             self.config_code.append(ConfigInstruction(source_line=ctx.start.line))
-            self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
+            self.get_current_prog_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
     # ====== Вставка wait ======
@@ -256,7 +256,7 @@ class CodeGenerator(ASICParserVisitor):
         if len(self.prog_code) == 0:
             return
 
-        instr = self.get_current_instruction()
+        instr = self.get_current_prog_instruction()
         instr_idx = len(self.prog_code) - 1
         self.check_active_standard_latency(instr, instr_idx)
         self.check_passive_standard_latency(instr, instr_idx)
@@ -441,7 +441,7 @@ class CodeGenerator(ASICParserVisitor):
         code = self.get_full_code_binary(prefix, show_source_line)
         return "\n".join(code)
 
-    def get_current_instruction(self) -> ProgInstruction | None:
+    def get_current_prog_instruction(self) -> ProgInstruction | None:
         if len(self.prog_code) == 0:
             return None
         return self.prog_code[-1]
