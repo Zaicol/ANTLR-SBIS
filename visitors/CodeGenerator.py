@@ -1,6 +1,3 @@
-from bisect import bisect_left
-from typing import Any
-
 from generated.ASICParser import ASICParser
 from generated.ASICParserVisitor import ASICParserVisitor
 from models.ProgInstruction import ProgInstruction
@@ -25,7 +22,7 @@ class CodeGenerator(ASICParserVisitor):
         self.configs = configs
 
         self.config_code: list[ConfigInstruction] = []
-        self.machine_code: list[ProgInstruction] = []
+        self.prog_code: list[ProgInstruction] = []
         self.conf_constants = {}
 
         # Информация для вставки wait
@@ -38,7 +35,7 @@ class CodeGenerator(ASICParserVisitor):
             self.conf_constants[name] = self.visit(const)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.machine_code.append(ProgInstruction(source_line=ctx.start.line))
+        self.prog_code.append(ProgInstruction(source_line=ctx.start.line))
         self.visitChildren(ctx)
         self.check_latencies()
 
@@ -256,11 +253,11 @@ class CodeGenerator(ASICParserVisitor):
         """
         Вставляет wait, если требуется
         """
-        if len(self.machine_code) == 0:
+        if len(self.prog_code) == 0:
             return
 
         instr = self.get_current_instruction()
-        instr_idx = len(self.machine_code) - 1
+        instr_idx = len(self.prog_code) - 1
         self.check_active_standard_latency(instr, instr_idx)
         self.check_passive_standard_latency(instr, instr_idx)
         self.check_wrout_latency(instr, instr_idx)
@@ -355,7 +352,7 @@ class CodeGenerator(ASICParserVisitor):
 
         last_instr: ProgInstruction | None = None  # иначе pycharm ругается, что last_instr может быть неинициализирован
         if ((last_idx := instr_idx - 1) >= 0
-                and (last_instr := self.machine_code[last_idx]) is not None
+                and (last_instr := self.prog_code[last_idx]) is not None
                 and last_instr.is_wait()):
             last_cycles = last_instr.get_wait_cycles()
             if last_cycles > cycles:
@@ -368,25 +365,25 @@ class CodeGenerator(ASICParserVisitor):
         if cycles == 0:
             return
 
-        cur_instr = self.machine_code[instr_idx]
+        cur_instr = self.prog_code[instr_idx]
         for c in split_cycles_generator(cycles):
             wait_instr = ProgInstruction(source_line=cur_instr.source_line)
             wait_instr.set_wait()
             wait_instr.set_wait_cycles(c)
-            self.machine_code.insert(instr_idx, wait_instr)
+            self.prog_code.insert(instr_idx, wait_instr)
 
     def update_labels(self):
         source_line_to_instruction_map = self.get_source_line_to_instruction_map()
         for label in self.labels.values():
             label.address = get_closest_line(source_line_to_instruction_map, label.source_line)
 
-        for instruction in self.machine_code:
+        for instruction in self.prog_code:
             if instruction.is_jump():
                 instruction.set_expression_value(self.labels[instruction.get_jump_label().name].address)
 
     def get_source_line_to_instruction_map(self) -> dict[int, int]:
         result = {}
-        for i, instruction in enumerate(self.machine_code):
+        for i, instruction in enumerate(self.prog_code):
             sl = instruction.get_source_line()
             if sl in result:
                 result[sl] = min(result[sl], i)
@@ -397,7 +394,7 @@ class CodeGenerator(ASICParserVisitor):
     # ====== Методы для вывода кода ======
 
     def get_machine_code(self) -> list[MachineInstruction]:
-        return self.machine_code
+        return self.prog_code
 
     def get_config_code(self) -> list[ConfigInstruction]:
         return self.config_code
@@ -412,8 +409,8 @@ class CodeGenerator(ASICParserVisitor):
             conf_hex = config.to_hex(False, split_bytes)
             result += [source_line + prefix_str + conf_hex[i] for i in range(4)]
 
-        result += [f"#prog {len(self.machine_code)}"]
-        for instruction in self.machine_code:
+        result += [f"#prog {len(self.prog_code)}"]
+        for instruction in self.prog_code:
             source_line = f"{instruction.source_line}:\t" if show_source_line else ""
             inst_hex = instruction.to_hex_str(False, split_bytes)
             result.append(source_line + prefix_str + inst_hex)
@@ -427,8 +424,8 @@ class CodeGenerator(ASICParserVisitor):
             config_bin_list = config.to_binary_list()
             result += [source_line + prefix_str + config_bin_list[i] for i in range(4)]
 
-        result += [f"#prog {len(self.machine_code)}"]
-        for instruction in self.machine_code:
+        result += [f"#prog {len(self.prog_code)}"]
+        for instruction in self.prog_code:
             source_line = f"{instruction.source_line}:\t" if show_source_line else ""
             instruction_bin_list = instruction.to_binary_list()
             result.append(source_line + prefix_str + instruction_bin_list[0])
@@ -445,9 +442,9 @@ class CodeGenerator(ASICParserVisitor):
         return "\n".join(code)
 
     def get_current_instruction(self) -> ProgInstruction | None:
-        if len(self.machine_code) == 0:
+        if len(self.prog_code) == 0:
             return None
-        return self.machine_code[-1]
+        return self.prog_code[-1]
 
     def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:
         return self.expr_evaluator.visit_line(ctx, max_size_in_bits)
