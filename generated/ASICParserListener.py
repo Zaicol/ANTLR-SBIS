@@ -143,21 +143,21 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by ASICParser#SpCopOp.
-    def enterSpCopOp(self, ctx:ASICParser.SpCopOpContext):
+    # Enter a parse tree produced by ASICParser#GenOp.
+    def enterGenOp(self, ctx:ASICParser.GenOpContext):
         pass
 
-    # Exit a parse tree produced by ASICParser#SpCopOp.
-    def exitSpCopOp(self, ctx:ASICParser.SpCopOpContext):
+    # Exit a parse tree produced by ASICParser#GenOp.
+    def exitGenOp(self, ctx:ASICParser.GenOpContext):
         pass
 
 
-    # Enter a parse tree produced by ASICParser#SpCopOnly.
-    def enterSpCopOnly(self, ctx:ASICParser.SpCopOnlyContext):
+    # Enter a parse tree produced by ASICParser#SpCop.
+    def enterSpCop(self, ctx:ASICParser.SpCopContext):
         pass
 
-    # Exit a parse tree produced by ASICParser#SpCopOnly.
-    def exitSpCopOnly(self, ctx:ASICParser.SpCopOnlyContext):
+    # Exit a parse tree produced by ASICParser#SpCop.
+    def exitSpCop(self, ctx:ASICParser.SpCopContext):
         pass
 
 
@@ -557,12 +557,21 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by ASICParser#spcop.
-    def enterSpcop(self, ctx:ASICParser.SpcopContext):
+    # Enter a parse tree produced by ASICParser#eop.
+    def enterEop(self, ctx:ASICParser.EopContext):
         pass
 
-    # Exit a parse tree produced by ASICParser#spcop.
-    def exitSpcop(self, ctx:ASICParser.SpcopContext):
+    # Exit a parse tree produced by ASICParser#eop.
+    def exitEop(self, ctx:ASICParser.EopContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#wait.
+    def enterWait(self, ctx:ASICParser.WaitContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#wait.
+    def exitWait(self, ctx:ASICParser.WaitContext):
         pass
 
 

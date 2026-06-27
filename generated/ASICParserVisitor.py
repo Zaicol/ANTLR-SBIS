@@ -84,13 +84,13 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ASICParser#SpCopOp.
-    def visitSpCopOp(self, ctx:ASICParser.SpCopOpContext):
+    # Visit a parse tree produced by ASICParser#GenOp.
+    def visitGenOp(self, ctx:ASICParser.GenOpContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ASICParser#SpCopOnly.
-    def visitSpCopOnly(self, ctx:ASICParser.SpCopOnlyContext):
+    # Visit a parse tree produced by ASICParser#SpCop.
+    def visitSpCop(self, ctx:ASICParser.SpCopContext):
         return self.visitChildren(ctx)
 
 
@@ -314,8 +314,13 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ASICParser#spcop.
-    def visitSpcop(self, ctx:ASICParser.SpcopContext):
+    # Visit a parse tree produced by ASICParser#eop.
+    def visitEop(self, ctx:ASICParser.EopContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#wait.
+    def visitWait(self, ctx:ASICParser.WaitContext):
         return self.visitChildren(ctx)
 
 

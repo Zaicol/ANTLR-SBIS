@@ -34,7 +34,7 @@ class ASICAssemblerTest(unittest.TestCase):
         with open(filepath, "r") as f:
             return f.read()
 
-    def test_empty_program(self):
+    def test_01_empty_program(self):
         """Тест пустой программы"""
         filename = "test_empty.txt"
         assembler = self.assemble_code(filename)
@@ -47,7 +47,7 @@ class ASICAssemblerTest(unittest.TestCase):
         self.assertIsNotNone(hex_code)
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
-    def test_simple_instructions(self):
+    def test_02_simple_instructions(self):
         """Простой тест без меток и циклов"""
         filename = "test_simple_instructions.txt"
         assembler = self.assemble_code(filename)
@@ -63,10 +63,9 @@ class ASICAssemblerTest(unittest.TestCase):
 
         lines = [line for line in hex_code.split('\n') if line.strip() and not line.startswith('#')]
         self.assertGreater(len(lines), 0, "Код программы пустой")
-
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
-    def test_labels(self):
+    def test_03_labels(self):
         """Тест меток"""
         filename = "test_labels.txt"
         assembler = self.assemble_code(filename)
@@ -84,7 +83,7 @@ class ASICAssemblerTest(unittest.TestCase):
         hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
-    def test_configs(self):
+    def test_04_configs(self):
         """Тест конфигураций"""
         filename = "test_configs.txt"
         assembler = self.assemble_code(filename)
@@ -94,6 +93,7 @@ class ASICAssemblerTest(unittest.TestCase):
         self.assertEqual(len(configs), 3, "Получено не 2 конфигурации")
         self.assertIn('conf_0', configs, "Должна присутствовать конфигурация conf_0")
         self.assertIn('conf_1', configs, "Должна присутствовать конфигурация conf_1")
+        self.assertIn('conf_2', configs, "Должна присутствовать конфигурация conf_2")
         config_indices = list(configs.values())
         self.assertEqual(len(config_indices), len(set(config_indices)),
                          f"Конфигурации имеют одинаковый индекс: {config_indices}")
@@ -105,7 +105,7 @@ class ASICAssemblerTest(unittest.TestCase):
         binary_code = assembler.code_generator.get_full_code_binary_str()
         print(binary_code)
 
-    def test_wait(self):
+    def test_05_wait(self):
         """Тест различных значений wait"""
         filename = "test_wait.txt"
         assembler = self.assemble_code(filename)
@@ -113,7 +113,7 @@ class ASICAssemblerTest(unittest.TestCase):
         hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
-    def test_hex_and_binary_consistency(self):
+    def test_06_hex_and_binary_consistency(self):
         """Тест согласованности hex и binary представлений"""
         filename = "test_consistency.txt"
         assembler = self.assemble_code(filename)
@@ -145,7 +145,7 @@ class ASICAssemblerTest(unittest.TestCase):
             self.assertEqual(dec_from_hex, dec_from_bin,
                              f"Строки с номером {hex_line_num} различаются")
 
-    def test_no_syntax_errors(self):
+    def test_07_no_syntax_errors(self):
         """Тест, что все валидные файлы не содержат синтаксических ошибок"""
         test_files = [
             "test_empty.txt",
@@ -162,7 +162,7 @@ class ASICAssemblerTest(unittest.TestCase):
                 self.assertFalse(assembler.has_errors,
                                  f"Файл {filename} содержит синтаксические ошибки")
 
-    def test_has_syntax_errors(self):
+    def test_08_has_syntax_errors(self):
         """Тест на определение ошибок"""
         test_dir = "syntax_errors"
         test_cases = [

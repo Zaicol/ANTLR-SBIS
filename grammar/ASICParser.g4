@@ -39,8 +39,8 @@ arith : (R0 PLUSPLUS) | (sreg MINUSMINUS) ;
 
 operator
     : resultexpr ASSIGN (aluop | stdop) argument   # AluSpOp
-    | resultexpr ASSIGN spcop                      # SpCopOp
-    | spcop                                        # SpCopOnly
+    | V1 ASSIGN GEN                                # GenOp
+    | (eop | wait | jump)                          # SpCop
     | resultout                                    # OutOp
     ;
 
@@ -169,13 +169,8 @@ stdop: A1 | A4 | A5 | A128D | SD | DINV | D_K64 | DINV_K64 ;
 
 aluop: ID | INV | AND | OR | XOR | NOT ;
 
-spcop
-    : GEN
-    | EOP
-    | WAIT LPAREN expression RPAREN
-    | jump
-    ;
-
+eop: EOP ;
+wait: WAIT LPAREN expression RPAREN ;
 jump: JNZ LPAREN sreg COMMA label RPAREN ;
 
 //opcode : aluop | stdop | spcop;

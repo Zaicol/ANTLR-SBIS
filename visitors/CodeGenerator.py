@@ -10,8 +10,7 @@ from models.Constant import Constant
 from models.Label import Label
 from models.enums.ConfigEnums import InputName, BPDAddress
 from models.enums.InstructionEnums import *
-from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
-from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
+from utils.utils import raise_syntax_error, raise_undefined_error
 from visitors.ExpressionEvaluator import ExpressionEvaluator
 
 
@@ -63,7 +62,7 @@ class CodeGenerator(ASICParserVisitor):
     def visitArg(self, ctx: ASICParser.ArgContext):
         arg_num = int(ctx.getText()[1])
         if not (0 <= arg_num <= 3):
-            raise AssemblerSyntaxError(f"Invalid argument number: {arg_num}", self.current_source_line)
+            raise_syntax_error(f"Invalid argument number: {arg_num}", ctx)
         return arg_num
 
     def visitSregop(self, ctx: ASICParser.SregopContext):
@@ -75,43 +74,34 @@ class CodeGenerator(ASICParserVisitor):
         self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
         return self.visitChildren(ctx)
 
-    def visitSpCopOp(self, ctx: ASICParser.SpCopOpContext):
-        # Стандартная команда
+    def visitGenOp(self, ctx: ASICParser.GenOpContext):
+        # v1 = gen
         self.get_current_instruction().set_operation_type(InstructionType.STANDARD)
-        if ctx.spcop().getText() == 'gen':
-            self.get_current_instruction().set_start_gen()
-            if ctx.resultexpr().getText() != 'v1':
-                raise AssemblerSyntaxError("gen operation can be used only with v1 register",
-                                           self.current_source_line)
-            return
+        self.get_current_instruction().set_start_gen()
+        return
+
+    def visitSpCop(self, ctx: ASICParser.SpCopContext):
+        self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
         return self.visitChildren(ctx)
 
-    def visitSpCopOnly(self, ctx: ASICParser.SpCopOnlyContext):
-        if ctx.getText() == 'eop':
-            self.get_current_instruction().set_eop()
-        else:
-            self.get_current_instruction().set_operation_type(InstructionType.SERVICE)
-        return self.visitChildren(ctx)
+    def visitEop(self, ctx: ASICParser.EopContext):
+        # eop
+        self.get_current_instruction().set_eop()
+        return
 
-    def visitSpcop(self, ctx: ASICParser.SpcopContext):
-        ctx_text = ctx.start.text
-        if ctx_text == 'gen':
-            # start_gen – запуск генерации очередного пакета данных
-            self.get_current_instruction().set_start_gen()
-        elif ctx_text == 'wait':
-            self.get_current_instruction().set_wait()
-        elif ctx_text == 'jnz':
-            # Условный переход
-            self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
+    def visitWait(self, ctx: ASICParser.WaitContext):
+        # wait(expression)
+        self.get_current_instruction().set_wait()
         return self.visitChildren(ctx)
 
     def visitJump(self, ctx: ASICParser.JumpContext):
+        # jnz(sreg, label)
         self.get_current_instruction().set_service_operation_type(ServiceType.JNZ)
         self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
         label_name = ctx.label().getText()
         label = self.labels.get(label_name, None)
         if label is None:
-            raise AssemblerUndefinedError(label_name, line=self.current_source_line)
+            raise_undefined_error(identifier=label_name, ctx=ctx)
         self.get_current_instruction().set_label_addr(label.address)
         self.get_current_instruction().set_jump_label(label)
         return
@@ -122,12 +112,12 @@ class CodeGenerator(ASICParserVisitor):
         return self.expr_evaluator.visit(ctx)
 
     def visitArith(self, ctx: ASICParser.ArithContext):
-        op = ctx.getChild(1).getText()
+        # r0++
         self.get_current_instruction().set_service_operation_type(ServiceType.INC_DEC)
-        if op == '--':
+        if ctx.MINUSMINUS():
             self.get_current_instruction().set_service_reg(self.visit(ctx.sreg()))
             self.get_current_instruction().set_decrement()
-        elif op == '++':
+        elif ctx.PLUSPLUS():
             self.get_current_instruction().set_service_reg(ServiceRegister.R0)
             self.get_current_instruction().set_increment()
 
@@ -139,7 +129,7 @@ class CodeGenerator(ASICParserVisitor):
             if place is not None:
                 output_places.append(place)
         if len(output_places) > 5:
-            raise AssemblerSyntaxError(f"Too many outputs ({len(output_places)} > 5)", self.current_source_line)
+            raise_syntax_error(f"Too many outputs ({len(output_places)} > 5)", ctx)
         self.get_current_instruction().set_output(output_places)
         return
 
@@ -176,12 +166,12 @@ class CodeGenerator(ASICParserVisitor):
         if not isinstance(ctx.parentCtx, ASICParser.Config_defContext):
             config_name = ctx.getText()
             if config_name not in self.configs:
-                raise AssemblerUndefinedError(config_name, line=self.current_source_line)
+                raise_undefined_error(identifier=config_name, ctx=ctx)
             self.get_current_instruction().set_config_addr(self.configs[config_name])
         return self.visitChildren(ctx)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.machine_code.append(BitCommand(source_line=self.current_source_line))
+        self.machine_code.append(BitCommand(source_line=ctx.start.line))
         return self.visitChildren(ctx)
 
     def visitLine(self, ctx: ASICParser.LineContext):
@@ -189,7 +179,7 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitConfig_def(self, ctx: ASICParser.Config_defContext):
-        self.config_code.append(BitConfig(source_line=self.current_source_line))
+        self.config_code.append(BitConfig(source_line=ctx.start.line))
         return self.visitChildren(ctx)
 
     def visitVreg_d(self, ctx: ASICParser.Vreg_dContext):
@@ -212,7 +202,7 @@ class CodeGenerator(ASICParserVisitor):
     def visitConst_name(self, ctx: ASICParser.Const_nameContext) -> Constant:
         const_name = ctx.getText()
         if const_name not in self.constants:
-            raise AssemblerUndefinedError(const_name, line=self.current_source_line)
+            raise_undefined_error(identifier=const_name, ctx=ctx)
         constant: Constant = self.constants[const_name]
         return constant
 
@@ -222,7 +212,7 @@ class CodeGenerator(ASICParserVisitor):
         elif ctx.const_name():
             constant: Constant = self.visit(ctx.const_name())
         else:
-            raise AssemblerSyntaxError("Unknown conf_c", self.current_source_line)
+            raise_syntax_error(f"Unknown type of constant in config: {ctx.getText()}", ctx)
         self.config_code[-1].set_constant(constant)
         return
 
@@ -261,9 +251,9 @@ class CodeGenerator(ASICParserVisitor):
         self.config_code[-1].set_rev_txt()
         return self.visitChildren(ctx)
 
-    def visitArgument(self, ctx:ASICParser.ArgumentContext):
+    def visitArgument(self, ctx: ASICParser.ArgumentContext):
         if ctx.configuration():
-            self.config_code.append(BitConfig(source_line=self.current_source_line))
+            self.config_code.append(BitConfig(source_line=ctx.start.line))
             self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
@@ -337,7 +327,7 @@ class CodeGenerator(ASICParserVisitor):
         closest_next_line = keys[i] if i < len(keys) else None
 
         if closest_next_line is None:
-            raise AssemblerSyntaxError(f"Can't find closest instruction for source line: {source_line}", source_line)
+            raise_syntax_error(f"Can't find closest instruction for source line: {source_line}", None)
 
         return source_line_map[closest_next_line]
 

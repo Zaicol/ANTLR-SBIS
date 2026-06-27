@@ -124,7 +124,7 @@ class BitCommand(BitInstruction):
         return self[24] == '0'
 
     def is_active(self) -> bool:
-        return self[self.RD] is True
+        return self[self.RD] == 1
 
     def is_passive(self) -> bool:
         return not self.is_active()
@@ -133,7 +133,7 @@ class BitCommand(BitInstruction):
         return self[self.WAIT_FLAG] == 1
 
     def is_eop(self) -> bool:
-        return self[self.EOP] is True
+        return self[self.EOP] == 1
 
     def is_jump(self) -> bool:
         return self[self.SERVICE_TYPE] == ServiceType.JNZ.value
@@ -141,10 +141,10 @@ class BitCommand(BitInstruction):
     # === ОПЕРАЦИИ С ДАННЫМИ ===
 
     def is_start_gen(self) -> bool:
-        return self[self.START_GEN] is True
+        return self[self.START_GEN] == 1
 
     def is_wrout(self) -> bool:
-        return self[self.WROUT] is True
+        return self[self.WROUT] == 1
 
     # === СОСТАВНЫЕ ПРИЗНАКИ ДЛЯ WAIT ===
 
