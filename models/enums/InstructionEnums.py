@@ -29,12 +29,12 @@ class ALUType(IntEnum):
 class OutputPlaces(IntEnum):
     # Биты
     CMP = 0
-    V1 = 1
-    V2 = 2
-    V3 = 4
-    V4 = 8
-    V2N = 16
-    V4M = 32
+    V1 = 1 << 0
+    V2 = 1 << 1
+    V3 = 1 << 2
+    V4 = 1 << 3
+    V2N = 1 << 4
+    V4M = 1 << 5
 
 
 class InstructionType(IntEnum):

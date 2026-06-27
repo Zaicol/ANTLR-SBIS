@@ -8,6 +8,7 @@ from models.BitInstruction import BitInstruction
 from models.BitConfig import BitConfig
 from models.Constant import Constant
 from models.Label import Label
+from models.LastInstruction import LastInstruction
 from models.enums.ConfigEnums import InputName, BPDAddress
 from models.enums.InstructionEnums import *
 from utils.utils import raise_syntax_error, raise_undefined_error
@@ -22,7 +23,6 @@ class CodeGenerator(ASICParserVisitor):
     config_code: list[BitConfig] = []  # Список конфигураций (128 бит)
     machine_code: list[BitCommand] = []  # Список инструкций (32 бита)
     for_loops: list[str] = []  # Список циклов
-    current_source_line: int = 0  # Текущая строка исходного кода
     expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
 
     def __init__(self, labels: dict[str, Label], configs: dict[str, int],
@@ -36,10 +36,21 @@ class CodeGenerator(ASICParserVisitor):
         self.config_code = []
         self.machine_code = []
         self.for_loops = []
-        self.current_source_line = 0
+
+        # Информация для вставки wait
+        self.wait_inserts = []
+        self.last_active_standard_instruction: LastInstruction | None = None
+        self.last_passive_standard_instruction: LastInstruction | None = None
+        self.last_v4_instruction: LastInstruction | None = None
+        self.last_wrout_instruction: LastInstruction | None = None
 
         for name, const in constant_contexts.items():
             self.constants[name] = self.visit(const)
+
+    def visitInstruction(self, ctx: ASICParser.InstructionContext):
+        self.machine_code.append(BitCommand(source_line=ctx.start.line))
+        self.visitChildren(ctx)
+        self.check_latencies()
 
     def visitDefine_def(self, ctx: ASICParser.Define_defContext):
         return
@@ -170,14 +181,6 @@ class CodeGenerator(ASICParserVisitor):
             self.get_current_instruction().set_config_addr(self.configs[config_name])
         return self.visitChildren(ctx)
 
-    def visitInstruction(self, ctx: ASICParser.InstructionContext):
-        self.machine_code.append(BitCommand(source_line=ctx.start.line))
-        return self.visitChildren(ctx)
-
-    def visitLine(self, ctx: ASICParser.LineContext):
-        self.current_source_line += 1
-        return self.visitChildren(ctx)
-
     def visitConfig_def(self, ctx: ASICParser.Config_defContext):
         self.config_code.append(BitConfig(source_line=ctx.start.line))
         return self.visitChildren(ctx)
@@ -257,56 +260,100 @@ class CodeGenerator(ASICParserVisitor):
             self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
-    def visitForloop(self, ctx: ASICParser.ForloopContext):
-        # TODO: Реализовать
-        return
+    def check_latencies(self):
+        """
+        Вставляет wait, если требуется
+        """
+        if len(self.machine_code) == 0:
+            return
 
-    def insert_wait_instructions(self):
-        def is_wait_next(index: int) -> bool:
-            if len(self.machine_code) > index + 1:
-                return False
-            return self.machine_code[index].is_wait()
+        instr = self.get_current_instruction()
+        instr_idx = len(self.machine_code) - 1
+        self.check_active_standard_latency(instr, instr_idx)
+        self.check_passive_standard_latency(instr, instr_idx)
+        self.check_wrout_latency(instr, instr_idx)
+        self.check_wait_latency(instr)
 
-        def make_wait_instruction(cycles: int, source_line: int) -> BitCommand:
-            new_instruction = BitCommand(source_line=source_line)
-            new_instruction.set_wait()
-            new_instruction.set_expression_value(cycles)
-            return new_instruction
+    def check_active_standard_latency(self, instr: BitCommand, instr_idx: int):
+        if not instr.is_active_standard():
+            return
 
-        result = []
-        last_active_index = -1
+        lat = 0
 
-        for i, instruction in enumerate(self.machine_code):
+        # Интервал между операциями должен быть не менее 64+max{0, L1-L2} тактов
+        last: LastInstruction | None = self.last_active_standard_instruction
+        if last is not None:
+            l1 = last.get_instruction().get_latency()
+            l2 = instr.get_latency()
+            lat = 64 + max(0, l1 - l2) - last.get_cycles_since()
 
-            result.append(instruction)
+        # при выдаче векторного регистра v4 в выходной поток,
+        # нельзя писать в регистр v4 на протяжении 256 тактов.
+        last_wrout: LastInstruction | None = self.last_wrout_instruction
+        has_v4 = instr.has_v4_in_outputs()
+        if has_v4 and last_wrout is not None:
+            l1 = last_wrout.get_instruction().get_latency()
+            v4_lat = 256 + l1 - last_wrout.get_cycles_since()
+            if v4_lat > lat:
+                lat = v4_lat
 
-            if instruction.is_start_gen():
-                if is_wait_next(i):
-                    self.machine_code[i].set_expression_value(max(self.machine_code[i].get_wait(), 4))
-                else:
-                    result.append(make_wait_instruction(4, instruction.get_source_line()))
-                continue
+        if lat > 0:
+            self.wait_inserts.append((instr_idx, lat))
 
-            if instruction.is_wrout():
-                if is_wait_next(i):
-                    self.machine_code[i].set_expression_value(max(self.machine_code[i].get_wait(), 5))
-                else:
-                    result.append(make_wait_instruction(5, instruction.get_source_line()))
-                continue
+        self.last_active_standard_instruction = LastInstruction(idx=instr_idx, instruction=instr)
+        if has_v4:
+            self.last_v4_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
-            if instruction.is_active_standard():
-                if last_active_index != -1:
-                    gap = len(result) - last_active_index - 1
+    def check_passive_standard_latency(self, instr: BitCommand, instr_idx: int):
+        if not instr.is_passive_standard():
+            return
 
-                    if gap < 128:
-                        needed = 128 - gap
-                        result.append(make_wait_instruction(needed, instruction.get_source_line()))
+        lat = 0
+        # Пассивную стандартную инструкцию можно выполнять вслед за активной
+        # на интервале менее 64 тактов при условии повторения полей cmd[21..12].
+        last: LastInstruction | None = self.last_active_standard_instruction
+        if last is not None and not instr.check_same_instructions(last.get_instruction()):
+            l1 = last.get_instruction().get_latency()
+            l2 = instr.get_latency()
+            lat = 64 + max(0, l1 - l2) - last.get_cycles_since()
 
-                last_active_index = len(result) - 1
-                continue
+        if lat > 0:
+            self.wait_inserts.append((instr_idx, lat))
 
-        self.machine_code = result
-        self.update_labels()
+        self.last_passive_standard_instruction = LastInstruction(idx=instr_idx, instruction=instr)
+
+    def check_wrout_latency(self, instr: BitCommand, instr_idx: int):
+        if not instr.is_wrout():
+            return
+
+        lat = 0
+        # После формирования пакета данных для v4 следует выдержать
+        # интервал не менее L+5 тактов перед записью в out
+        last: LastInstruction | None = self.last_v4_instruction
+        if last is not None:
+            l1 = last.get_instruction().get_latency()
+            lat = 5 + l1 - last.get_cycles_since()
+
+        if lat > 0:
+            self.wait_inserts.append((instr_idx, lat))
+
+        self.last_wrout_instruction = LastInstruction(idx=instr_idx, instruction=instr)
+
+    def check_wait_latency(self, instr: BitCommand):
+        if not (cycles := instr.get_wait()):
+            return
+
+        if self.last_active_standard_instruction is not None:
+            self.last_active_standard_instruction.add_cycles(cycles)
+
+        if self.last_passive_standard_instruction is not None:
+            self.last_passive_standard_instruction.add_cycles(cycles)
+
+        if self.last_v4_instruction is not None:
+            self.last_v4_instruction.add_cycles(cycles)
+
+        if self.last_wrout_instruction is not None:
+            self.last_wrout_instruction.add_cycles(cycles)
 
     def update_labels(self):
         source_line_to_instruction_map = self.get_source_line_to_instruction_map()
@@ -391,7 +438,9 @@ class CodeGenerator(ASICParserVisitor):
         code = self.get_full_code_binary(prefix, show_source_line)
         return "\n".join(code)
 
-    def get_current_instruction(self) -> BitCommand:
+    def get_current_instruction(self) -> BitCommand | None:
+        if len(self.machine_code) == 0:
+            return None
         return self.machine_code[-1]
 
     def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:

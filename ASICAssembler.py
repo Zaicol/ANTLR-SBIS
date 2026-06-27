@@ -60,7 +60,7 @@ class ASICAssembler:
             self.constant_contexts
         )
         self.code_generator.visit(self.tree)
-        self.code_generator.insert_wait_instructions()
+        self.code_generator.update_labels()
 
         return self.code_generator.get_machine_code()
 

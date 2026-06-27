@@ -37,10 +37,13 @@ class BitCommand(BitInstruction):
     INC = 30
     EOP = 31
 
+    CONTROL_FIELDS = slice(21, 12, -1)
+
     def __init__(self, source_line: int = 0):
         super().__init__(source_line=source_line)
         self.label: Label | None = None
         self.jump_label: Label | None = None
+        self.latency: int = 0
 
     def set_start_gen(self):
         self[self.START_GEN] = True
@@ -64,10 +67,12 @@ class BitCommand(BitInstruction):
     def set_sp_op(self, sp_op: SPType):
         self[self.TRANSFORMATION_TYPE_MODE] = sp_op.value
         self.set_transformation(TransformationType.SP)
+        self.set_sp_latency(sp_op)
 
     def set_alu_op(self, alu_op: ALUType):
         self[self.TRANSFORMATION_TYPE_MODE] = alu_op.value
         self.set_transformation(TransformationType.ALU)
+        self.set_alu_latency()
 
     def set_output(self, output_list: list[OutputPlaces]):
         output = 0
@@ -121,19 +126,27 @@ class BitCommand(BitInstruction):
         return self[self.INSTRUCION_TYPE] == InstructionType.STANDARD
 
     def is_service(self) -> bool:
-        return self[24] == '0'
+        return self[self.INSTRUCION_TYPE] == InstructionType.SERVICE
 
     def is_active(self) -> bool:
-        return self[self.RD] == 1
+        is_std = self.is_standard()
+        is_act = self[self.RD] == 1
+        return is_std and is_act
 
     def is_passive(self) -> bool:
-        return not self.is_active()
+        is_std = self.is_standard()
+        is_pas = self[self.RD] == 0
+        return is_std and is_pas
 
     def is_wait(self) -> bool:
-        return self[self.WAIT_FLAG] == 1
+        is_serv = self.is_service()
+        is_wait = self[self.WAIT_FLAG] == 1
+        return is_serv and is_wait
 
     def is_eop(self) -> bool:
-        return self[self.EOP] == 1
+        is_serv = self.is_service()
+        is_eop = self[self.EOP] == 1
+        return is_serv and is_eop
 
     def is_jump(self) -> bool:
         return self[self.SERVICE_TYPE] == ServiceType.JNZ.value
@@ -170,3 +183,33 @@ class BitCommand(BitInstruction):
 
     def is_labeled(self) -> bool:
         return self.label is not None
+
+    def set_sp_latency(self, sp_type: SPType):
+        match sp_type:
+            case SPType.A1:
+                self.latency = 27
+            case SPType.A4:
+                self.latency = 17
+            case SPType.A5:
+                self.latency = 33
+            case SPType.A128D:
+                self.latency = 20
+            case SPType.D, SPType.DINV, SPType.DK64, SPType.DINVK64:
+                self.latency = 4
+
+    def set_alu_latency(self):
+        self.latency = 1
+
+    def get_latency(self) -> int:
+        return self.latency
+
+    def is_passive_standard(self):
+        return not self.is_active() and self.is_standard()
+
+    def check_same_instructions(self, other: 'BitCommand'):
+        return self[self.CONTROL_FIELDS] == other[self.CONTROL_FIELDS]
+
+    def has_v4_in_outputs(self) -> bool:
+        is_act_std = self.is_active_standard()
+        has_v4 = (self[self.OUTPUT] & OutputPlaces.V4) != 0
+        return is_act_std and has_v4

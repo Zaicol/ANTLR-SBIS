@@ -15,7 +15,7 @@ def main():
 
     tree = assembler.tree
     parser = assembler.parser
-    generate_graph_tree(tree, parser)
+    # generate_graph_tree(tree, parser)
 
     print(tree.toStringTree(recog=parser))
     print_break()
