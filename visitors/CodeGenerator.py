@@ -11,20 +11,11 @@ from models.Label import Label
 from models.LastInstruction import LastInstruction
 from models.enums.ConfigEnums import InputName, BPDAddress
 from models.enums.InstructionEnums import *
-from utils.utils import raise_syntax_error, raise_undefined_error
+from utils.utils import raise_syntax_error, raise_undefined_error, split_cycles_generator, get_closest_line
 from visitors.ExpressionEvaluator import ExpressionEvaluator
 
 
 class CodeGenerator(ASICParserVisitor):
-    labels: dict[str, Label] = {}  # Метки и их адреса
-    configs: dict[str, int] = {}  # Конфигурации и их индексы
-    defines: dict[str, Any] = {}  # Макросы и их значения
-    constants: dict[str, Constant] = {}
-    config_code: list[ConfigInstruction] = []  # Список конфигураций (128 бит)
-    machine_code: list[ProgInstruction] = []  # Список инструкций (32 бита)
-    for_loops: list[str] = []  # Список циклов
-    expr_evaluator: ExpressionEvaluator  # Объект для вычисления выражений
-
     def __init__(self, labels: dict[str, Label], configs: dict[str, int],
                  defines: dict[str, ASICParser.ExpressionContext],
                  constant_contexts: dict[str, ASICParser.Const_exprContext]):
@@ -33,19 +24,18 @@ class CodeGenerator(ASICParserVisitor):
         self.labels = labels
         self.configs = configs
 
-        self.config_code = []
-        self.machine_code = []
-        self.for_loops = []
+        self.config_code: list[ConfigInstruction] = []
+        self.machine_code: list[ProgInstruction] = []
+        self.conf_constants = {}
 
         # Информация для вставки wait
-        self.wait_inserts = []
         self.last_active_standard_instruction: LastInstruction | None = None
         self.last_passive_standard_instruction: LastInstruction | None = None
         self.last_v4_instruction: LastInstruction | None = None
         self.last_wrout_instruction: LastInstruction | None = None
 
         for name, const in constant_contexts.items():
-            self.constants[name] = self.visit(const)
+            self.conf_constants[name] = self.visit(const)
 
     def visitInstruction(self, ctx: ASICParser.InstructionContext):
         self.machine_code.append(ProgInstruction(source_line=ctx.start.line))
@@ -204,9 +194,9 @@ class CodeGenerator(ASICParserVisitor):
 
     def visitConst_name(self, ctx: ASICParser.Const_nameContext) -> Constant:
         const_name = ctx.getText()
-        if const_name not in self.constants:
+        if const_name not in self.conf_constants:
             raise_undefined_error(identifier=const_name, ctx=ctx)
-        constant: Constant = self.constants[const_name]
+        constant: Constant = self.conf_constants[const_name]
         return constant
 
     def visitConf_c(self, ctx: ASICParser.Conf_cContext):
@@ -260,6 +250,8 @@ class CodeGenerator(ASICParserVisitor):
             self.get_current_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
 
+    # ====== Вставка wait ======
+
     def check_latencies(self):
         """
         Вставляет wait, если требуется
@@ -298,7 +290,7 @@ class CodeGenerator(ASICParserVisitor):
                 lat = v4_lat
 
         if lat > 0:
-            self.wait_inserts.append((instr_idx, lat))
+            self.insert_wait(instr_idx, lat)
 
         self.last_active_standard_instruction = LastInstruction(idx=instr_idx, instruction=instr)
         if has_v4:
@@ -318,7 +310,7 @@ class CodeGenerator(ASICParserVisitor):
             lat = 64 + max(0, l1 - l2) - last.get_cycles_since()
 
         if lat > 0:
-            self.wait_inserts.append((instr_idx, lat))
+            self.insert_wait(instr_idx, lat)
 
         self.last_passive_standard_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
@@ -335,12 +327,13 @@ class CodeGenerator(ASICParserVisitor):
             lat = 5 + l1 - last.get_cycles_since()
 
         if lat > 0:
-            self.wait_inserts.append((instr_idx, lat))
+            self.insert_wait(instr_idx, lat)
 
         self.last_wrout_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
     def check_wait_latency(self, instr: ProgInstruction):
-        if not (cycles := instr.get_wait()):
+        # При попадании на wait снижаем необходимую дополнительную задержку
+        if not (cycles := instr.get_wait_cycles()):
             return
 
         if self.last_active_standard_instruction is not None:
@@ -355,28 +348,41 @@ class CodeGenerator(ASICParserVisitor):
         if self.last_wrout_instruction is not None:
             self.last_wrout_instruction.add_cycles(cycles)
 
+    def insert_wait(self, instr_idx: int, cycles: int):
+
+        if cycles == 0:
+            return
+
+        last_instr: ProgInstruction | None = None  # иначе pycharm ругается, что last_instr может быть неинициализирован
+        if ((last_idx := instr_idx - 1) >= 0
+                and (last_instr := self.machine_code[last_idx]) is not None
+                and last_instr.is_wait()):
+            last_cycles = last_instr.get_wait_cycles()
+            if last_cycles > cycles:
+                cycles = last_cycles
+
+            first_cycles = cycles % 255 or 255
+            last_instr.set_wait_cycles(first_cycles)
+            cycles -= first_cycles
+
+        if cycles == 0:
+            return
+
+        cur_instr = self.machine_code[instr_idx]
+        for c in split_cycles_generator(cycles):
+            wait_instr = ProgInstruction(source_line=cur_instr.source_line)
+            wait_instr.set_wait()
+            wait_instr.set_wait_cycles(c)
+            self.machine_code.insert(instr_idx, wait_instr)
+
     def update_labels(self):
         source_line_to_instruction_map = self.get_source_line_to_instruction_map()
         for label in self.labels.values():
-            label.address = self.get_closest_line(source_line_to_instruction_map, label.source_line)
+            label.address = get_closest_line(source_line_to_instruction_map, label.source_line)
 
         for instruction in self.machine_code:
             if instruction.is_jump():
                 instruction.set_expression_value(self.labels[instruction.get_jump_label().name].address)
-
-    def get_closest_line(self, source_line_map: dict[int, int], source_line: int) -> int:
-        if source_line in source_line_map:
-            return source_line_map[source_line]
-
-        keys = sorted(source_line_map.keys())
-        i = bisect_left(keys, source_line)
-
-        closest_next_line = keys[i] if i < len(keys) else None
-
-        if closest_next_line is None:
-            raise_syntax_error(f"Can't find closest instruction for source line: {source_line}", None)
-
-        return source_line_map[closest_next_line]
 
     def get_source_line_to_instruction_map(self) -> dict[int, int]:
         result = {}

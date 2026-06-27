@@ -2,6 +2,9 @@ from enum import IntEnum
 
 
 class MachineInstruction:
+    """
+    Класс для представления инструкции в виде списка битов
+    """
     len: int = 32
 
     def __init__(self, source_line: int = 0):

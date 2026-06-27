@@ -4,6 +4,9 @@ from models.MachineInstruction import MachineInstruction
 
 
 class ProgInstruction(MachineInstruction):
+    """
+    Класс, являющийся представлением 32-битной инструкции программы
+    """
 
     START_GEN = 0
     WROUT = 1
@@ -97,6 +100,10 @@ class ProgInstruction(MachineInstruction):
     def set_wait(self):
         self[self.WAIT_FLAG] = True
 
+    def set_wait_cycles(self, cycles: int):
+        self[self.WAIT_FLAG] = True
+        self[self.EXPRESSION_VALUE] = cycles
+
     def set_label_addr(self, addr: int):
         self[self.JMP_ADDR] = addr
 
@@ -164,7 +171,7 @@ class ProgInstruction(MachineInstruction):
     def is_active_standard(self) -> bool:
         return self.is_standard() and self.is_active()
 
-    def get_wait(self):
+    def get_wait_cycles(self):
         if not self.is_wait():
             return 0
         return self[self.EXPRESSION_VALUE]

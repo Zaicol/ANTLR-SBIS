@@ -4,6 +4,10 @@ from models.enums.ConfigEnums import InputName, InputSpace
 
 
 class ConfigInstruction(MachineInstruction):
+    """
+    Класс, являющийся представлением 128-битной конфигурации
+    """
+
     # Адреса аргументов
     # Аргументы для MUX
     A1 = slice(1, 0, -1)
