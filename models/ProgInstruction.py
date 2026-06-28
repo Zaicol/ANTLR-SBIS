@@ -216,6 +216,11 @@ class ProgInstruction(MachineInstruction):
     def check_same_instructions(self, other: 'ProgInstruction'):
         return self[self.CONTROL_FIELDS] == other[self.CONTROL_FIELDS]
 
+    def has_v1_in_outputs(self) -> bool:
+        is_act_std = self.is_active_standard()
+        has_v1 = (self[self.OUTPUT] & OutputPlaces.V1) != 0
+        return is_act_std and has_v1
+
     def has_v4_in_outputs(self) -> bool:
         is_act_std = self.is_active_standard()
         has_v4 = (self[self.OUTPUT] & OutputPlaces.V4) != 0

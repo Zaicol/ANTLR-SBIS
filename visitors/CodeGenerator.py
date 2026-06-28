@@ -30,6 +30,7 @@ class CodeGenerator(ASICParserVisitor):
         self.last_passive_standard_instruction: LastInstruction | None = None
         self.last_v4_instruction: LastInstruction | None = None
         self.last_wrout_instruction: LastInstruction | None = None
+        self.last_gen_instruction: LastInstruction | None = None
 
         for name, const in constant_contexts.items():
             self.conf_constants[name] = self.visit(const)
@@ -261,6 +262,7 @@ class CodeGenerator(ASICParserVisitor):
         self.check_active_standard_latency(instr, instr_idx)
         self.check_passive_standard_latency(instr, instr_idx)
         self.check_wrout_latency(instr, instr_idx)
+        self.check_gen_latency(instr, instr_idx)
         self.check_wait_latency(instr)
 
     def check_active_standard_latency(self, instr: ProgInstruction, instr_idx: int):
@@ -282,9 +284,16 @@ class CodeGenerator(ASICParserVisitor):
         has_v4 = instr.has_v4_in_outputs()
         if has_v4 and last_wrout is not None:
             l1 = last_wrout.get_instruction().get_latency()
-            v4_lat = 256 + l1 - last_wrout.get_cycles_since()
-            if v4_lat > lat:
-                lat = v4_lat
+            lat_v4 = 256 + l1 - last_wrout.get_cycles_since()
+            if lat_v4 > lat:
+                lat = lat_v4
+
+        last_gen: LastInstruction | None = self.last_gen_instruction
+        if instr.has_v1_in_outputs() and last_gen is not None:
+            l1 = last_gen.get_instruction().get_latency()
+            lat_gen = 64 + l1 - last_gen.get_cycles_since()
+            if lat_gen > lat:
+                lat = lat_gen
 
         if lat > 0:
             self.insert_wait(instr_idx, lat)
@@ -328,11 +337,18 @@ class CodeGenerator(ASICParserVisitor):
 
         self.last_wrout_instruction = LastInstruction(idx=instr_idx, instruction=instr)
 
-    def check_wait_latency(self, instr: ProgInstruction):
-        # При попадании на wait снижаем необходимую дополнительную задержку
-        if not (cycles := instr.get_wait_cycles()):
+    def check_gen_latency(self, instr: ProgInstruction, instr_idx: int):
+        if not instr.is_start_gen():
             return
 
+        self.last_gen_instruction = LastInstruction(idx=instr_idx, instruction=instr)
+
+    def check_wait_latency(self, instr: ProgInstruction):
+        # При попадании на wait снижаем необходимую дополнительную задержку
+        if cycles := instr.get_wait_cycles():
+            self.add_cycles_to_last_instructions(cycles)
+
+    def add_cycles_to_last_instructions(self, cycles: int):
         if self.last_active_standard_instruction is not None:
             self.last_active_standard_instruction.add_cycles(cycles)
 
@@ -360,6 +376,8 @@ class CodeGenerator(ASICParserVisitor):
 
             first_cycles = cycles % 255 or 255
             last_instr.set_wait_cycles(first_cycles)
+            if (diff := (last_cycles - first_cycles)) > 0:
+                self.add_cycles_to_last_instructions(diff)
             cycles -= first_cycles
 
         if cycles == 0:
@@ -371,6 +389,7 @@ class CodeGenerator(ASICParserVisitor):
             wait_instr.set_wait()
             wait_instr.set_wait_cycles(c)
             self.prog_code.insert(instr_idx, wait_instr)
+            self.add_cycles_to_last_instructions(c)
 
     def update_labels(self):
         source_line_to_instruction_map = self.get_source_line_to_instruction_map()
