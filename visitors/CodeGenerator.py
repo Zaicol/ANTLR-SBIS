@@ -208,7 +208,7 @@ class CodeGenerator(ASICParserVisitor):
         return
 
     def visitConf_d(self, ctx: ASICParser.Conf_dContext):
-        shift_value = None  # sh_R1-sh_R4
+        shift_value = 0  # sh_R1-sh_R4
         significant_count = 32  # tr_R1-tr_R4
 
         # Получаем название входа: v1, v1h, v2, v3, v4, r0, rev(r0)
@@ -219,20 +219,16 @@ class CodeGenerator(ASICParserVisitor):
                 # Если вход - rev_reg(r0), то устанавливается соответствующий флаг
                 self.config_code[-1].set_rev_reg()
             reg_name = InputName.R0
-            significant_count = 64
         else:
-            raise Exception("Unknown vreg")
+            raise raise_undefined_error(identifier=ctx.getText(), ctx=ctx)
 
-        if len(ctx.expression()) == 2:
-            # input{significant_count} << shift
-            significant_count = self.calc_expr(ctx.expression(0))
-            shift_value = self.calc_expr(ctx.expression(1))
-        elif ctx.LSHIFT():
-            # input << shift
-            shift_value = self.calc_expr(ctx.expression(0))
-        elif len(ctx.expression()) > 0:
+        if ctx.conf_d_trunc():
             # input{significant_count}
-            significant_count = self.calc_expr(ctx.expression(0))
+            significant_count = self.calc_expr(ctx.conf_d_trunc().expression(), max_size=32)
+
+        if ctx.const_shift():
+            # input << shift
+            shift_value = self.calc_expr(ctx.const_shift().expression(), max_size=96)
 
         # Вызываем метод BitConfig.set_input, который устанавливает нужные значения в подходящих позициях
         self.config_code[-1].set_input(reg_name, shift_value, significant_count)
@@ -465,5 +461,5 @@ class CodeGenerator(ASICParserVisitor):
             return None
         return self.prog_code[-1]
 
-    def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8) -> int:
-        return self.expr_evaluator.visit_line(ctx, max_size_in_bits)
+    def calc_expr(self, ctx: ASICParser.ExpressionContext, max_size_in_bits: int = 8, max_size: int = 0) -> int:
+        return self.expr_evaluator.visit_line(ctx, max_size_in_bits, max_size)

@@ -169,11 +169,12 @@ class ASICAssemblerTest(unittest.TestCase):
             ("test_error_unknown_operator.txt", AssemblerSyntaxError,
              """Found the following syntax errors:
 Line 1, Column 3: no viable alternative at input 'r1!='
+Line 3, Column 6: no viable alternative at input 'wait(+)'
 """),
             ("test_error_no_config.txt", AssemblerUndefinedError,
-             "Undefined identifier: 'conf_1'"),
+             "Undefined identifier: 'conf_1' at line 1, column 9"),
             ("test_error_constant.txt", BitValueError,
-             "Expression value 16777217 out of range [0, 16777215]"),
+             "Expression value 98 out of range [0, 96] at line 2, column 14"),
         ]
 
         for filename, expected_exception, expected_message in test_cases:

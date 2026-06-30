@@ -5,7 +5,8 @@ class AssemblerError(Exception):
         self.message = message
         self.line = line
         self.column = column
-        super().__init__(self._format_message())
+        self.message = self._format_message()
+        super().__init__(self.message)
 
     def _format_message(self) -> str:
         parts = [self.message]

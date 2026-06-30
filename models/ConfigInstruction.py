@@ -1,6 +1,7 @@
 from models.MachineInstruction import MachineInstruction
 from models.Constant import Constant
 from models.enums.ConfigEnums import InputName, InputSpace
+from models.exceptions.BitValueError import BitValueError
 
 
 class ConfigInstruction(MachineInstruction):
@@ -179,8 +180,12 @@ class ConfigInstruction(MachineInstruction):
 
         self[space_params["mux"]] = space_params["regs"][reg_name]
         if significant_count is not None:
+            if significant_count > 32:
+                raise BitValueError("Significant count must be less than 32")
             self[space_params["trunc"]] = significant_count
         if shift_value is not None:
+            if shift_value > 96:
+                raise BitValueError("Shift value must be less than 96")
             self[space_params["shift"]] = shift_value
 
     def set_input(self, reg_name: InputName, shift_value: int = None, significant_count: int = 32):

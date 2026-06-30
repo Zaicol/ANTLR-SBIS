@@ -19,16 +19,6 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ASICParser#forloop.
-    def visitForloop(self, ctx:ASICParser.ForloopContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by ASICParser#endfor.
-    def visitEndfor(self, ctx:ASICParser.EndforContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by ASICParser#definition.
     def visitDefinition(self, ctx:ASICParser.DefinitionContext):
         return self.visitChildren(ctx)
@@ -211,6 +201,11 @@ class ASICParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ASICParser#conf_atom.
     def visitConf_atom(self, ctx:ASICParser.Conf_atomContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#conf_d_trunc.
+    def visitConf_d_trunc(self, ctx:ASICParser.Conf_d_truncContext):
         return self.visitChildren(ctx)
 
 

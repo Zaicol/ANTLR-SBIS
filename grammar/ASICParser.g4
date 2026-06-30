@@ -6,11 +6,7 @@ prog
    : (line)*
    ;
 
-line
-   : (definition|statement|forloop|endfor) comment? ;
-
-forloop: FOR LPAREN sreg COMMA constant RPAREN ;
-endfor: ENDFOR ;
+line: (definition|statement) comment? ;
 
 definition: define_def | config_def | const_def;
 
@@ -130,7 +126,9 @@ configuration: conf_atom (PLUS conf_atom)* ;
 
 conf_atom: conf_d | conf_c ;
 
-conf_d: (vreg | vreg_r) (LBRACE expression RBRACE)? (LSHIFT expression)?;
+conf_d_trunc: LBRACE expression RBRACE;
+
+conf_d: (vreg | vreg_r) (conf_d_trunc)? (const_shift)?;
 conf_c: const_name | const_expr ;
 
 const_addr: LBRACKET (expression | vreg_d | sreg) RBRACKET;

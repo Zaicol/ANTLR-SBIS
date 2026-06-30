@@ -26,24 +26,6 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by ASICParser#forloop.
-    def enterForloop(self, ctx:ASICParser.ForloopContext):
-        pass
-
-    # Exit a parse tree produced by ASICParser#forloop.
-    def exitForloop(self, ctx:ASICParser.ForloopContext):
-        pass
-
-
-    # Enter a parse tree produced by ASICParser#endfor.
-    def enterEndfor(self, ctx:ASICParser.EndforContext):
-        pass
-
-    # Exit a parse tree produced by ASICParser#endfor.
-    def exitEndfor(self, ctx:ASICParser.EndforContext):
-        pass
-
-
     # Enter a parse tree produced by ASICParser#definition.
     def enterDefinition(self, ctx:ASICParser.DefinitionContext):
         pass
@@ -374,6 +356,15 @@ class ASICParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ASICParser#conf_atom.
     def exitConf_atom(self, ctx:ASICParser.Conf_atomContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#conf_d_trunc.
+    def enterConf_d_trunc(self, ctx:ASICParser.Conf_d_truncContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#conf_d_trunc.
+    def exitConf_d_trunc(self, ctx:ASICParser.Conf_d_truncContext):
         pass
 
 

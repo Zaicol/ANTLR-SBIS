@@ -7,7 +7,6 @@ from models.Label import Label
 from models.exceptions.AssemblerErrorListener import AssemblerErrorListener
 from visitors.CodeGenerator import CodeGenerator
 from visitors.FirstPassVisitor import FirstPassVisitor
-from utils.tree import generate_graph_tree
 
 
 class ASICAssembler:
