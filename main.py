@@ -1,4 +1,4 @@
-from ASICAssembler import ASICAssembler
+from ASIPAssembler import ASIPAssembler
 from visitors.CodeGenerator import CodeGenerator
 from utils.tree import generate_graph_tree
 
@@ -10,7 +10,7 @@ ADD_PREFIX = False
 
 def main():
     # Создание потока входных данных
-    assembler: ASICAssembler = ASICAssembler(TEST_FILE_NAME)
+    assembler: ASIPAssembler = ASIPAssembler(TEST_FILE_NAME)
     assembler.assemble()
 
     tree = assembler.tree

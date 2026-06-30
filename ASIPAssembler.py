@@ -9,7 +9,7 @@ from visitors.CodeGenerator import CodeGenerator
 from visitors.FirstPassVisitor import FirstPassVisitor
 
 
-class ASICAssembler:
+class ASIPAssembler:
     def __init__(self, source_file: str):
         self.source_file = source_file
         self.tree = None

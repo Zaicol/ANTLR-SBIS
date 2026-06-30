@@ -2,25 +2,25 @@ import unittest
 import os
 import sys
 
-from ASICAssembler import ASICAssembler
+from ASIPAssembler import ASIPAssembler
 from models.exceptions.AssemblerSyntaxError import AssemblerSyntaxError
 from models.exceptions.BitValueError import BitValueError
 from models.exceptions.AssemblerUndefinedError import AssemblerUndefinedError
 
 
-class ASICAssemblerTest(unittest.TestCase):
+class ASIPAssemblerTest(unittest.TestCase):
 
     test_dir = "test_files"
     test_data_dir = "assembler_data"
     expected_data_dir = "expected_data"
 
-    def assemble_code(self, filename) -> ASICAssembler:
+    def assemble_code(self, filename) -> ASIPAssembler:
         filepath = os.path.join(self.test_dir, self.test_data_dir, filename)
 
         if not os.path.exists(filepath):
             self.fail(f"Файл не найден: {filepath}")
 
-        assembler: ASICAssembler = ASICAssembler(filepath)
+        assembler: ASIPAssembler = ASIPAssembler(filepath)
         assembler.assemble()
 
         return assembler
@@ -189,7 +189,7 @@ Line 3, Column 6: no viable alternative at input 'wait(+)'
 def run_tests():
     """Запуск всех тестов"""
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(ASICAssemblerTest)
+    suite = loader.loadTestsFromTestCase(ASIPAssemblerTest)
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
