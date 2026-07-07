@@ -79,12 +79,20 @@ additive_expression
     :   multiplicative_expression (addop multiplicative_expression)*
     ;
 
+shiftop
+    : LSHIFT | RSHIFT
+    ;
+
+shift_expression
+    :   additive_expression (shiftop additive_expression)*
+    ;
+
 relop
     : LABRACKET | RABRACKET | LEQUAL | GEQUAL
     ;
 
 relational_expression
-    :   additive_expression (relop additive_expression)*
+    :   shift_expression (relop shift_expression)*
     ;
 
 eqop

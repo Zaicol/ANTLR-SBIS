@@ -1,4 +1,5 @@
-#config conf_0 c[0] + c[0];
+#const c0 c[0];
+#config conf_0 c[0] + c0;
 #config conf_1 rev(rev_reg(r0));
 #config conf_2 rev(v4{32} << 96 + v4{32} << 96 + v4{32} << 96 + rev_reg(r0){32} << 96 + c[r3] << 96 + c[127] << 96 + c[v4] << 96);
 v1 = a1(conf_0);

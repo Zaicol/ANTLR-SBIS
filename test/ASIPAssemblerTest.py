@@ -48,7 +48,7 @@ class ASIPAssemblerTest(unittest.TestCase):
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
     def test_02_simple_instructions(self):
-        """Простой тест без меток и циклов"""
+        """Тест простой программы без меток и конфигураций"""
         filename = "test_simple_instructions.txt"
         assembler = self.assemble_code(filename)
 
@@ -105,15 +105,23 @@ class ASIPAssemblerTest(unittest.TestCase):
         binary_code = assembler.code_generator.get_full_code_binary_str()
         print(binary_code)
 
-    def test_05_wait(self):
-        """Тест различных значений wait"""
+    def test_05_expressions(self):
+        """Тест выражений"""
+        filename = "test_expressions.txt"
+        assembler = self.assemble_code(filename)
+
+        hex_code = assembler.code_generator.get_full_code_hex_str()
+        self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
+
+    def test_06_wait_insertion(self):
+        """Тест автоматической вставки wait инструкций"""
         filename = "test_wait.txt"
         assembler = self.assemble_code(filename)
 
         hex_code = assembler.code_generator.get_full_code_hex_str()
         self.assertEqual(hex_code, self.get_expected_data(filename), "Код программы не совпадает")
 
-    def test_06_hex_and_binary_consistency(self):
+    def test_07_hex_and_binary_consistency(self):
         """Тест согласованности hex и binary представлений"""
         filename = "test_consistency.txt"
         assembler = self.assemble_code(filename)
@@ -145,8 +153,8 @@ class ASIPAssemblerTest(unittest.TestCase):
             self.assertEqual(dec_from_hex, dec_from_bin,
                              f"Строки с номером {hex_line_num} различаются")
 
-    def test_07_no_syntax_errors(self):
-        """Тест, что все валидные файлы не содержат синтаксических ошибок"""
+    def test_08_no_syntax_errors(self):
+        """Тест отсутствия синтаксических ошибок в тестовых данных"""
         test_files = [
             "test_empty.txt",
             "test_simple_instructions.txt",
@@ -162,8 +170,8 @@ class ASIPAssemblerTest(unittest.TestCase):
                 self.assertFalse(assembler.has_errors,
                                  f"Файл {filename} содержит синтаксические ошибки")
 
-    def test_08_has_syntax_errors(self):
-        """Тест на определение ошибок"""
+    def test_09_has_syntax_errors(self):
+        """Тест определения ошибок"""
         test_dir = "syntax_errors"
         test_cases = [
             ("test_error_unknown_operator.txt", AssemblerSyntaxError,

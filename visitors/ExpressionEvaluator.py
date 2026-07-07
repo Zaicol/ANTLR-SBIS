@@ -1,5 +1,3 @@
-from typing import Any
-
 from generated.ASICLexer import ASICLexer
 from generated.ASICParserVisitor import ASICParserVisitor
 from generated.ASICParser import ASICParser
@@ -108,11 +106,34 @@ class ExpressionEvaluator(ASICParserVisitor):
 
         return result
 
-    def visitRelational_expression(self, ctx: ASICParser.Relational_expressionContext):
+    def visitShift_expression(self, ctx:ASICParser.Shift_expressionContext):
         result = self.visit(ctx.additive_expression(0))
 
-        for i, op_ctx in enumerate(ctx.relop()):
+        for i, op_ctx in enumerate(ctx.shiftop()):
             right = self.visit(ctx.additive_expression(i + 1))
+            oper = op_ctx.getText()
+
+            if oper == '<<':
+                result <<= right
+
+            elif oper == '>>':
+                result >>= right
+
+            else:
+                column: int = ctx.start.column
+                raise AssemblerSyntaxError(
+                    f"Unknown operator: {oper}",
+                    self.source_line,
+                    column
+                )
+
+        return result
+
+    def visitRelational_expression(self, ctx: ASICParser.Relational_expressionContext):
+        result = self.visit(ctx.shift_expression(0))
+
+        for i, op_ctx in enumerate(ctx.relop()):
+            right = self.visit(ctx.shift_expression(i + 1))
             oper = op_ctx.getText()
 
             if oper == '<':

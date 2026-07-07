@@ -242,6 +242,24 @@ class ASICParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ASICParser#shiftop.
+    def enterShiftop(self, ctx:ASICParser.ShiftopContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#shiftop.
+    def exitShiftop(self, ctx:ASICParser.ShiftopContext):
+        pass
+
+
+    # Enter a parse tree produced by ASICParser#shift_expression.
+    def enterShift_expression(self, ctx:ASICParser.Shift_expressionContext):
+        pass
+
+    # Exit a parse tree produced by ASICParser#shift_expression.
+    def exitShift_expression(self, ctx:ASICParser.Shift_expressionContext):
+        pass
+
+
     # Enter a parse tree produced by ASICParser#relop.
     def enterRelop(self, ctx:ASICParser.RelopContext):
         pass

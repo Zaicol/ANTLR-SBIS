@@ -1,8 +1,6 @@
-r1 = $0;
-wait(1);
 v1 = gen;
-wait(10);
-wait(100);
-wait(255);
-r2 = $0;
+wait(1);
+v4 = a1(v1 << 12);
+(v2, v4) = not(c[0]);
+out = v4;
 eop;

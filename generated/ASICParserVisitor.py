@@ -139,6 +139,16 @@ class ASICParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ASICParser#shiftop.
+    def visitShiftop(self, ctx:ASICParser.ShiftopContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ASICParser#shift_expression.
+    def visitShift_expression(self, ctx:ASICParser.Shift_expressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ASICParser#relop.
     def visitRelop(self, ctx:ASICParser.RelopContext):
         return self.visitChildren(ctx)

@@ -239,7 +239,7 @@ class CodeGenerator(ASICParserVisitor):
         return self.visitChildren(ctx)
 
     def visitArgument(self, ctx: ASICParser.ArgumentContext):
-        if ctx.configuration():
+        if ctx.configuration() or ctx.rev_configuration():
             self.config_code.append(ConfigInstruction(source_line=ctx.start.line))
             self.get_current_prog_instruction().set_config_addr(len(self.config_code) - 1)
         return self.visitChildren(ctx)
